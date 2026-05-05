@@ -1,0 +1,88 @@
+# =============================================================================
+# PiscinãoMonitor — .gitignore
+# =============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+.venv/
+venv/
+ENV/
+env/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# --- Node.js / Frontend ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+frontend/dist/
+frontend/.vite/
+frontend/.next/
+*.tsbuildinfo
+
+# --- Ambientes ---
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# --- Docker ---
+*.log
+docker-compose.override.yml
+
+# --- IDEs / Editores ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Certificados e Chaves ---
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+certbot/
+ssl/
+
+# --- Alembic ---
+backend/alembic/versions/*.pyc
+
+# --- OS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+desktop.ini

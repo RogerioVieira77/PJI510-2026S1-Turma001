@@ -1,1058 +1,959 @@
-# backlog Tecnico.md
+﻿# Backlog Técnico — PiscinãoMonitor
 
-## Backlog Técnico da Construção do Sistema Sindiflow
+## Sistema de Monitoramento de Piscinões — Backlog de Construção
 
-**Projeto:** Sindiflow 
-**Documento base:** [004 - DevSpecs.md](/opt/unicomunitaria/docker/sistema-de-condominios/docs)
-**Objetivo:** transformar a estratégia técnica em uma fila executável de trabalho, organizada por épicos e tarefas.
-
----
-
-## 1. Regras de uso deste backlog
-
-1. Este backlog é a base operacional do desenvolvimento do sistema Sindiflow.
-2. A ordem dos épicos respeita as dependências técnicas e de produto.
-3. Nenhuma tarefa de fase posterior deve bloquear o MVP.
-4. Tudo que envolver integrações externas deve entrar apenas depois do domínio principal estar estável.
-5. Cada tarefa só pode ser considerada concluída quando atender os critérios de aceite definidos neste documento.
+**Projeto:** PJI510 — Projeto Integrador em Engenharia da Computação — UNIVESP 2026/S1  
+**Versão:** 1.0 | **Data:** 05/05/2026  
+**Documento base:** 001 - Plano de Desenvolvimento | 002 - SRS | 003 - PRD | 004 - DevSpecs  
+**Objetivo:** Transformar a estratégia técnica em fila executável de trabalho, organizada em épicos e tarefas com critérios de aceite verificáveis.
 
 ---
 
-## 2. Convenções
+## Regras de Uso
 
-### Prioridade
-
-- `P0`: bloqueante para início ou MVP
-- `P1`: alta prioridade dentro da fase atual
-- `P2`: importante, mas não bloqueante
-- `P3`: posterior
-
-### Status inicial
-
-Todas as tarefas deste documento começam implicitamente como `todo`.
-
-### Tipos
-
-- `infra`
-- `backend`
-- `frontend`
-- `data`
-- `qa`
-- `produto-tecnico`
+1. A ordem dos épicos respeita **dependências técnicas**: EPIC-00 → EPIC-01 → EPIC-02 → EPIC-03 são pré-requisitos para todos os demais.
+2. **Prioridades:** P0 = bloqueante para MVP | P1 = MVP completo | P2 = pós-MVP | P3 = entrega acadêmica
+3. Uma tarefa é **concluída** somente quando todos os critérios de aceite estiverem verificados.
+4. Cada commit deve referenciar o código da tarefa (`TASK-XX`) no corpo da mensagem.
+5. Integrações com APIs externas (EPIC-11) só iniciam após o domínio principal estar estável (EPIC-05 concluído).
 
 ---
 
-## 3. Ordem macro de execução
+## Visão Geral dos Épicos
 
-### Fase A. Fundação
-
-1. ambiente
-2. backend core
-3. frontend base
-4. autenticação
-5. banco e migrations
-
-### Fase B. Núcleo funcional
-
-1. admin
-2. financeiro
-3. dashboard
-4. jornada do morador
-
-### Fase C. Operação do condomínio
-
-1. manutenção
-2. facilities
-3. ocorrências
-4. comunicados
-5. notificações
-
-### Fase D. Expansão
-
-1. contas a pagar
-2. relatórios
-3. assembleias
-4. portaria
-5. integrações bancárias
-
-### Fase E. Escala
-
-1. observabilidade avançada
-2. backup
-3. app nativo
-4. IA assistiva
+| EPIC | Nome | Prioridade | Tipo | Semanas |
+|------|------|------------|------|---------|
+| EPIC-00 | Bootstrap do Projeto | P0 | infra | 1-2 |
+| EPIC-01 | Infraestrutura e Containerização | P0 | infra | 3-4 |
+| EPIC-02 | Banco de Dados e TimescaleDB | P0 | data | 3-4 |
+| EPIC-03 | Backend Core (Auth + Core) | P0 | backend | 5-6 |
+| EPIC-04 | Módulo de Ingestão IoT | P0 | backend | 6-7 |
+| EPIC-05 | Módulo de Processamento | P0 | backend | 7-8 |
+| EPIC-06 | Módulo de Alertas e Notificações | P1 | backend | 8-9 |
+| EPIC-07 | Endpoints Dashboard (Backend) | P1 | backend | 9-10 |
+| EPIC-08 | Frontend Base e PWA | P1 | frontend | 9-10 |
+| EPIC-09 | Dashboard Técnico | P1 | frontend | 10-11 |
+| EPIC-10 | Dashboard Público | P1 | frontend | 11-12 |
+| EPIC-11 | Integração Climática | P2 | backend | 13-14 |
+| EPIC-12 | Testes e Qualidade | P2 | qa | 13-14 |
+| EPIC-13 | Documentação Final e Entrega | P3 | docs | 15-16 |
 
 ---
 
-## 4. Épicos e tarefas
+## EPIC-00 — Bootstrap do Projeto
 
-## EPIC-00: Bootstrap do Novo Produto
+> Estrutura base do repositório, configuração de ambiente e scaffolding inicial de todos os serviços.
 
-**Objetivo:** criar a nova base do projeto sem depender estruturalmente da codebase antiga.
+### TASK-00 — Inicialização do Repositório
 
-**Dependências:** nenhuma
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** nenhuma
+- **Entregáveis:**
+  - Repositório Git inicializado com branch `main`
+  - `.gitignore` cobrindo Python, Node.js, Docker, `.env`
+  - `.env.example` com todas as variáveis necessárias documentadas
+  - `README.md` com visão geral, pré-requisitos e quickstart
+- **Critérios de Aceite:**
+  - [ ] `git log` mostra commit inicial com estrutura de pastas
+  - [ ] `.env.example` contém chaves: `DB_PASSWORD`, `SECRET_KEY`, `INGESTAO_API_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`, `REDIS_PASSWORD`
+  - [ ] `.gitignore` impede que `.env` seja rastreado
+  - [ ] `README.md` contém seções: Visão Geral, Pré-requisitos, Setup Rápido, Arquitetura
 
-### Tarefas
+### TASK-01 — Scaffold de Diretórios
 
-#### BT-001 — Definir estrutura física do repositório
-- Tipo: `infra`
-- Prioridade: `P0`
-- Entregáveis:
-  - pasta [frontend](/opt/unicomunitaria/docker/sistema-de-condominios/frontend)
-  - reorganização planejada de [backend](/opt/unicomunitaria/docker/sistema-de-condominios/backend) para o novo padrão modular
-  - estrutura `core/`, `modules/`, `tests/`, `scripts/`
-- Critérios de aceite:
-  - estrutura final do repositório refletida no código real
-  - a nova estrutura não depende de `services/` ou `apps/web` para funcionar
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** TASK-00
+- **Entregáveis:**
+  - Estrutura de pastas completa conforme PRD seção 7 (`backend/app/modules/`, `frontend/src/`, `nginx/`, `scripts/`)
+  - Arquivo `__init__.py` em cada pacote Python
+  - `package.json` inicializado no frontend (sem dependências ainda)
+- **Critérios de Aceite:**
+  - [ ] `tree` da raiz do projeto bate com a estrutura documentada no PRD
+  - [ ] Nenhum erro ao navegar pelos diretórios no terminal
+  - [ ] `backend/app/modules/` contém: `ingestao/`, `processamento/`, `alertas/`, `dashboard/`, `clima/`, `auth/`, `core/`
 
-#### BT-002 — Criar documento de setup inicial do ambiente
-- Tipo: `produto-tecnico`
-- Prioridade: `P0`
-- Entregáveis:
-  - instruções de bootstrap local
-  - fluxo de variáveis de ambiente
-  - comandos de migração e execução
-- Critérios de aceite:
-  - qualquer dev consegue subir ambiente local com instruções únicas
+### TASK-02 — Docker Compose Skeleton
 
-#### BT-003 — Criar `.env.example` da nova versão
-- Tipo: `infra`
-- Prioridade: `P0`
-- Dependências: `BT-001`
-- Entregáveis:
-  - variáveis de app
-  - db
-  - redis
-  - jwt
-  - email
-  - WhatsApp
-- Critérios de aceite:
-  - todas as variáveis obrigatórias documentadas
-  - nenhum segredo inseguro hardcoded
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** TASK-01
+- **Entregáveis:**
+  - `docker-compose.yml` com 6 serviços declarados (postgres, redis, backend, worker, frontend, nginx)
+  - `docker-compose.override.yml` para desenvolvimento (volume mounts, hot reload)
+  - Dockerfiles placeholder para `backend/` e `frontend/`
+- **Critérios de Aceite:**
+  - [ ] `docker compose config` valida sem erros
+  - [ ] Healthchecks declarados para `postgres` e `redis`
+  - [ ] `depends_on` com `condition: service_healthy` nos serviços backend e worker
 
----
+### TASK-03 — Script de Geração de Chaves VAPID
 
-## EPIC-01: Infraestrutura de Desenvolvimento e Deploy Inicial
-
-**Objetivo:** ter um ambiente reproduzível e leve para desenvolvimento e staging.
-
-**Dependências:** `BT-001`, `BT-003`
-
-### Tarefas
-
-#### INF-001 — Criar `docker-compose.staging.yml`
-- Tipo: `infra`
-- Prioridade: `P0`
-- Entregáveis:
-  - postgres
-  - redis
-  - backend
-  - frontend
-- Critérios de aceite:
-  - ambiente sobe com um comando
-  - todos os serviços têm healthcheck mínimo quando aplicável
-
-#### INF-002 — Criar Dockerfile do novo backend
-- Tipo: `infra`
-- Prioridade: `P0`
-- Dependências: `INF-001`
-- Critérios de aceite:
-  - build funciona localmente
-  - imagem roda com usuário não-root
-
-#### INF-003 — Criar Dockerfile do novo frontend
-- Tipo: `infra`
-- Prioridade: `P0`
-- Dependências: `INF-001`
-- Critérios de aceite:
-  - build funciona localmente
-  - dev e build de produção suportados
-
-#### INF-004 — Criar scripts de setup e reset de ambiente
-- Tipo: `infra`
-- Prioridade: `P1`
-- Dependências: `INF-001`
-- Entregáveis:
-  - `scripts/setup.sh`
-  - `scripts/reset-db.sh`
-  - `scripts/run-dev.sh`
-- Critérios de aceite:
-  - ambiente pode ser recriado com previsibilidade
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** TASK-00
+- **Entregáveis:**
+  - `scripts/generate_vapid_keys.py` que gera par de chaves VAPID e imprime em formato `.env`
+- **Critérios de Aceite:**
+  - [ ] `python scripts/generate_vapid_keys.py` imprime `VAPID_PUBLIC_KEY=...` e `VAPID_PRIVATE_KEY=...`
+  - [ ] Chaves geradas são válidas para uso com `pywebpush`
 
 ---
 
-## EPIC-02: Backend Core
+## EPIC-01 — Infraestrutura e Containerização
 
-**Objetivo:** estabelecer a espinha dorsal do backend modular.
+> Configuração completa de todos os serviços Docker em produção e NGINX com segurança OWASP.
 
-**Dependências:** `INF-001`, `INF-002`
+### TASK-10 — Dockerfile Backend (Produção)
 
-### Tarefas
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** TASK-02
+- **Entregáveis:**
+  - `backend/Dockerfile` multi-stage (builder + runtime) para Python 3.12-slim
+  - Dependências instaladas via `pip` com `pyproject.toml`
+  - Usuário não-root no container
+- **Critérios de Aceite:**
+  - [ ] `docker build -t piscinao-backend ./backend` conclui sem erros
+  - [ ] Container roda como usuário `appuser` (não root)
+  - [ ] Imagem final < 500 MB
+  - [ ] `docker run --rm piscinao-backend python -c "import fastapi; print(fastapi.__version__)"` exibe versão
 
-#### CORE-001 — Inicializar FastAPI da nova aplicação
-- Tipo: `backend`
-- Prioridade: `P0`
-- Entregáveis:
-  - `main.py`
-  - ciclo de vida da aplicação
-  - registro de routers por módulo
-- Critérios de aceite:
-  - app sobe sem erro
-  - rota `/health/live` responde
+### TASK-11 — Dockerfile Frontend (Build + Serve)
 
-#### CORE-002 — Implementar `config.py` com Pydantic Settings
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `CORE-001`
-- Critérios de aceite:
-  - settings validados na inicialização
-  - segredos obrigatórios sem default inseguro
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** TASK-02
+- **Entregáveis:**
+  - `frontend/Dockerfile` multi-stage: Node 22-alpine para build, NGINX-alpine para serve
+  - Build Vite gerado em `/usr/share/nginx/html`
+- **Critérios de Aceite:**
+  - [ ] `docker build -t piscinao-frontend ./frontend` conclui sem erros
+  - [ ] Acesso a `http://localhost` retorna o `index.html` do React
+  - [ ] Bundle JS gzipped ≤ 250 KB conforme RNF-08
 
-#### CORE-003 — Implementar banco assíncrono com SQLAlchemy 2.0 Async
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `CORE-002`
-- Critérios de aceite:
-  - `AsyncSession` funcional
-  - conexão com PostgreSQL validada por teste simples
+### TASK-12 — Configuração NGINX com Segurança OWASP
 
-#### CORE-004 — Configurar Alembic como única fonte de evolução do schema
-- Tipo: `data`
-- Prioridade: `P0`
-- Dependências: `CORE-003`
-- Critérios de aceite:
-  - ambiente de migrations funcional
-  - comando de upgrade aplica migrations sem uso de `create_all`
+- **Tipo:** infra
+- **Prioridade:** P0
+- **Dependências:** TASK-10, TASK-11
+- **Entregáveis:**
+  - `nginx/nginx.conf` com worker_processes, events, gzip
+  - `nginx/conf.d/piscinao.conf` com:
+    - Proxy `/api/` → backend:8000
+    - Proxy `/ws/` → backend:8000 (WebSocket upgrade)
+    - Static files com `try_files $uri /index.html`
+    - Headers de segurança: `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Referrer-Policy`, `Content-Security-Policy`, `Strict-Transport-Security`
+    - Rate limiting: zona `general` (burst 20), zona `api` (burst 50), zona `ingestao` (burst 10)
+- **Critérios de Aceite:**
+  - [ ] `nginx -t` valida configuração sem erros
+  - [ ] `curl -I http://localhost/` retorna todos os 6 headers de segurança
+  - [ ] `curl -X POST http://localhost/api/v1/ingestao/leituras` com 11 requests em sequência recebe `429 Too Many Requests`
+  - [ ] WebSocket conecta via `ws://localhost/ws/publico/1`
 
-#### CORE-005 — Padronizar resposta e tratamento de erro da API
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `CORE-001`
-- Critérios de aceite:
-  - erros retornam payload padronizado
-  - paginação padronizada disponível para listagens
+### TASK-13 — SSL/TLS com Let's Encrypt (Opcional MVP)
 
-#### CORE-006 — Implementar middlewares essenciais
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `CORE-001`
-- Escopo:
-  - security headers
-  - correlation id
-  - audit log
-  - rate limit
-- Critérios de aceite:
-  - headers de segurança presentes
-  - request id disponível nos logs
-
-#### CORE-007 — Implementar logging JSON
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `CORE-006`
-- Critérios de aceite:
-  - logs estruturados em ambiente local e staging
-
-#### CORE-008 — Implementar health checks e readiness
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `CORE-003`
-- Critérios de aceite:
-  - endpoints de saúde verificam app, db e redis
-
-#### CORE-009 — Implementar módulo de storage com filesystem local
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `CORE-001`
-- Escopo:
-  - interface `StorageProvider` em `core/storage/`
-  - implementação `LocalStorageProvider` (filesystem + volume Docker)
-  - configuração `max_upload_size_mb` no `config.py`
-  - endpoint genérico de serve de arquivos
-- Critérios de aceite:
-  - upload e download funcionais
-  - módulos de domínio usam interface, não acessam filesystem diretamente
-  - volume mapeado no docker-compose
+- **Tipo:** infra
+- **Prioridade:** P2
+- **Dependências:** TASK-12
+- **Entregáveis:**
+  - Script `scripts/setup_ssl.sh` usando Certbot Docker para obter certificado
+  - Configuração NGINX atualizada para porta 443 + redirect 80 → 443
+- **Critérios de Aceite:**
+  - [ ] `curl -I https://dominio.exemplo.com` retorna 200 com certificado válido
+  - [ ] HSTS header presente com `max-age=31536000`
 
 ---
 
-## EPIC-03: Autenticação, Autorização e Tenancy
+## EPIC-02 — Banco de Dados e TimescaleDB
 
-**Objetivo:** garantir identidade, papéis e isolamento por condomínio.
+> Configuração do PostgreSQL com TimescaleDB, todas as migrations via Alembic, e seeds de desenvolvimento.
 
-**Dependências:** `CORE-002`, `CORE-003`, `CORE-006`
+### TASK-20 — Setup Alembic e Conexão Async
 
-### Tarefas
+- **Tipo:** data
+- **Prioridade:** P0
+- **Dependências:** TASK-10
+- **Entregáveis:**
+  - `backend/alembic.ini` configurado com `sqlalchemy.url` via env var
+  - `backend/alembic/env.py` com suporte a async SQLAlchemy
+  - `backend/app/database.py` com `create_async_engine`, `AsyncSession`, `get_db` dependency
+- **Critérios de Aceite:**
+  - [ ] `alembic current` executa sem erros (banco vazio, revision `None`)
+  - [ ] `alembic upgrade head` executa migration inicial sem erros
+  - [ ] `alembic downgrade -1` reverte sem erros
 
-#### AUTH-001 — Modelar usuário, papel e vínculo com condomínio
-- Tipo: `backend`
-- Prioridade: `P0`
-- Critérios de aceite:
-  - modelo contempla `admin`, `sindico`, `morador`, `funcionario`
-  - vínculo com `condominio_id` disponível
+### TASK-21 — Migration: Entidades Relacionais Base
 
-#### AUTH-002 — Implementar login com JWT e refresh token
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `AUTH-001`
-- Critérios de aceite:
-  - login retorna access token e refresh token
-  - refresh funciona
+- **Tipo:** data
+- **Prioridade:** P0
+- **Dependências:** TASK-20
+- **Entregáveis:**
+  - Migration Alembic criando as tabelas: `usuario`, `reservatorio`, `sensor`, `alerta`, `historico_alerta`, `push_subscription`, `email_subscription`
+  - Models SQLAlchemy declarados em `app/modules/*/models.py`
+- **Critérios de Aceite:**
+  - [ ] `alembic upgrade head` cria todas as 7 tabelas no banco
+  - [ ] Constraints de FK, UNIQUE e NOT NULL presentes conforme SRS seção 8
+  - [ ] `alembic downgrade -1` remove todas as tabelas criadas
+  - [ ] `alembic check` não indica pendências
 
-#### AUTH-003 — Implementar hash de senha com bcrypt
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `AUTH-001`
-- Critérios de aceite:
-  - criação e verificação de senha testadas
+### TASK-22 — Migration: Hypertables TimescaleDB
 
-#### AUTH-004 — Implementar dependências de autorização por papel
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `AUTH-002`
-- Critérios de aceite:
-  - rotas podem exigir papéis específicos
+- **Tipo:** data
+- **Prioridade:** P0
+- **Dependências:** TASK-21
+- **Entregáveis:**
+  - `scripts/setup_timescaledb.sql` com:
+    - `CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;`
+    - `SELECT create_hypertable('leitura_sensor', 'timestamp')` com chunk_time_interval de 7 dias
+    - `SELECT create_hypertable('leitura_climatica', 'timestamp')` com chunk_time_interval de 7 dias
+  - Migration Alembic criando tabelas `leitura_sensor` e `leitura_climatica` e executando `SELECT create_hypertable`
+- **Critérios de Aceite:**
+  - [ ] `SELECT * FROM timescaledb_information.hypertables;` retorna 2 hypertables
+  - [ ] INSERT de 1000 registros em `leitura_sensor` executa em < 500ms
+  - [ ] `SELECT show_chunks('leitura_sensor')` retorna chunks após inserções
 
-#### AUTH-005 — Implementar enforcement de multi-tenancy
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `AUTH-002`
-- Critérios de aceite:
-  - todas as queries dos módulos centrais filtram `condominio_id`
-  - testes cobrem vazamento cross-tenant
+### TASK-23 — Continuous Aggregates e Compressão
 
-#### AUTH-006 — Implementar recuperação e troca de senha
-- Tipo: `backend`
-- Prioridade: `P2`
-- Dependências: `AUTH-002`, `NOTIF-002`
+- **Tipo:** data
+- **Prioridade:** P0
+- **Dependências:** TASK-22
+- **Entregáveis:**
+  - Migration ou script SQL criando:
+    - View `leitura_sensor_hourly` (média/min/max de `nivel_cm` por hora por sensor)
+    - View `leitura_sensor_daily` (média/min/max de `nivel_cm` por dia por sensor)
+  - Política de compressão ativada em `leitura_sensor` (segmentos > 7 dias)
+  - Política de retenção configurada (dado bruto: 1 ano, agregado diário: 5 anos)
+- **Critérios de Aceite:**
+  - [ ] `SELECT * FROM timescaledb_information.continuous_aggregates;` retorna 2 views
+  - [ ] Query em `leitura_sensor_hourly` para 30 dias retorna em < 200ms
+  - [ ] `SELECT * FROM timescaledb_information.compression_settings;` mostra configuração ativa
 
-#### AUTH-007 — Implementar auto-registro de morador
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `AUTH-001`, `ADM-005`
-- Escopo:
-  - endpoint público de registro (`POST /auth/register`)
-  - criação de `Usuario` com status `pendente`
-  - match automático por CPF se pré-cadastrado pelo síndico
-  - fluxo de aprovação/rejeição de vínculo pelo síndico
-  - endpoints: `GET /admin/vinculos-pendentes`, `POST /admin/vinculos/{id}/aprovar`, `POST /admin/vinculos/{id}/rejeitar`
-- Critérios de aceite:
-  - morador consegue se registrar sem intervenção do síndico
-  - CPF pré-cadastrado gera vínculo automático
-  - CPF não cadastrado gera solicitação pendente visível ao síndico
-  - morador pendente não acessa funcionalidades protegidas
-  - testes cobrem ambos os fluxos (match e pendente)
+### TASK-24 — Seeds de Desenvolvimento
 
----
-
-## EPIC-04: Frontend Base e Jornada Mobile-First
-
-**Objetivo:** criar a aplicação web principal com foco forte na experiência do morador e do síndico.
-
-**Dependências:** `INF-003`, `AUTH-002`
-
-### Tarefas
-
-#### FE-001 — Inicializar projeto Next.js 16 + TypeScript
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Critérios de aceite:
-  - app sobe localmente
-  - App Router configurado
-
-#### FE-002 — Configurar Tailwind, shadcn/ui e design tokens
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FE-001`
-- Critérios de aceite:
-  - sistema visual básico pronto
-  - componentes base disponíveis
-
-#### FE-003 — Configurar client HTTP, React Query e auth store
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FE-001`, `AUTH-002`
-- Critérios de aceite:
-  - autenticação persistida
-  - interceptação de token e refresh operando
-
-#### FE-004 — Criar layout do síndico
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FE-002`
-- Critérios de aceite:
-  - sidebar
-  - header
-  - navegação protegida
-
-#### FE-005 — Criar layout do morador mobile-first
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FE-002`
-- Critérios de aceite:
-  - navegação otimizada para celular
-  - primeira dobra útil em telas de 375px+
-
-#### FE-006 — Criar fluxo de login
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FE-003`
-- Critérios de aceite:
-  - login funcional com tratamento de erro e loading
-
-#### FE-007 — Implementar guards de rota por perfil
-- Tipo: `frontend`
-- Prioridade: `P1`
-- Dependências: `FE-003`, `FE-006`
-
-#### FE-008 — Garantir experiência PWA inicial
-- Tipo: `frontend`
-- Prioridade: `P1`
-- Dependências: `FE-005`
-- Escopo:
-  - manifest
-  - ícones
-  - configuração inicial para instalação
-- Critérios de aceite:
-  - app instalável em dispositivos suportados
+- **Tipo:** data
+- **Prioridade:** P0
+- **Dependências:** TASK-21
+- **Entregáveis:**
+  - `scripts/seed_dev.sql` inserindo:
+    - 1 reservatório (`id=1`, nome="Piscinão Aricanduva", capacidade_m3=1500000, area_secao_m2=250000)
+    - 2 sensores (`id=1` nível, `id=2` pluviometria)
+    - 1 usuário admin (`admin@piscinao.local`, role=admin)
+    - 500 leituras históricas simuladas nas últimas 48h em `leitura_sensor`
+- **Critérios de Aceite:**
+  - [ ] `psql ... -f scripts/seed_dev.sql` executa sem erros
+  - [ ] `SELECT COUNT(*) FROM leitura_sensor;` retorna ≥ 500
+  - [ ] `SELECT COUNT(*) FROM reservatorio;` retorna 1
+  - [ ] `SELECT COUNT(*) FROM sensor;` retorna 2
 
 ---
 
-## EPIC-05: Módulo Admin
+## EPIC-03 — Backend Core (Auth + Core)
 
-**Objetivo:** entregar a fundação cadastral e a relação síndico <-> morador.
+> FastAPI app factory, configurações, health checks e módulo de autenticação JWT + RBAC.
 
-**Dependências:** `CORE-004`, `AUTH-005`, `FE-004`, `FE-005`
+### TASK-30 — FastAPI App Factory e Configuração
 
-### Tarefas backend
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-20
+- **Entregáveis:**
+  - `backend/app/main.py` com função `create_app()` que registra routers, middleware e exception handlers
+  - `backend/app/config.py` com `class Settings(BaseSettings)` lendo todas as vars de `.env`
+  - `backend/app/core/middleware.py` com CORS configurado (origins configurável via env)
+  - `backend/app/core/exceptions.py` com handlers globais para `HTTPException` e `ValidationError`
+- **Critérios de Aceite:**
+  - [ ] `uvicorn app.main:app --reload` inicia sem erros
+  - [ ] `GET /docs` retorna a UI do Swagger
+  - [ ] `GET /openapi.json` retorna schema OpenAPI válido
+  - [ ] Request com `Origin: http://evil.com` recebe `403` se não estiver em `CORS_ORIGINS`
 
-#### ADM-001 — Modelar entidades `Condominio`, `Unidade`, `Morador`, `Usuario`
-- Tipo: `data`
-- Prioridade: `P0`
-- Critérios de aceite:
-  - modelos e migrations criados
-  - constraints de domínio aplicadas
+### TASK-31 — Health Check Endpoints
 
-#### ADM-002 — Criar repositórios e serviços do módulo admin
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `ADM-001`
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-30
+- **Entregáveis:**
+  - `GET /health` → `{"status": "ok", "timestamp": "..."}`
+  - `GET /health/db` → verifica conectividade PostgreSQL
+  - `GET /health/redis` → verifica conectividade Redis
+- **Critérios de Aceite:**
+  - [ ] `curl localhost:8000/health` retorna HTTP 200 com JSON `{"status": "ok"}`
+  - [ ] `curl localhost:8000/health/db` retorna `{"status": "ok", "db": "connected"}` quando banco está UP
+  - [ ] `curl localhost:8000/health/db` retorna HTTP 503 quando banco está DOWN
+  - [ ] NGINX healthcheck configurado com `GET /health`
 
-#### ADM-003 — Implementar CRUD de condomínios
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `ADM-002`
+### TASK-32 — Módulo Auth: Modelos e Schemas
 
-#### ADM-004 — Implementar CRUD de unidades
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `ADM-002`
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-21
+- **Entregáveis:**
+  - `app/modules/auth/models.py`: model `Usuario` (id, email, password_hash, role, ativo, created_at)
+  - `app/modules/auth/schemas.py`: `LoginRequest`, `TokenResponse`, `RefreshRequest`, `UserCreate`, `UserRead`
+  - `app/core/security.py`: `hash_password()`, `verify_password()`, `create_access_token()`, `create_refresh_token()`, `decode_token()`
+- **Critérios de Aceite:**
+  - [ ] Passwords armazenados com bcrypt (factor ≥ 12)
+  - [ ] JWT access token expira em 30 minutos
+  - [ ] JWT refresh token expira em 7 dias
+  - [ ] `decode_token()` lança exceção para token inválido ou expirado
 
-#### ADM-005 — Implementar CRUD de moradores
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `ADM-002`
+### TASK-33 — Módulo Auth: Endpoints e RBAC
 
-#### ADM-006 — Implementar vínculo usuário <-> morador
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `ADM-005`, `AUTH-001`
-
-#### ADM-007 — Implementar validações de CPF, CNPJ e placa
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `ADM-001`
-
-### Tarefas frontend
-
-#### ADM-008 — Criar telas de condomínio, unidades e moradores para síndico
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `ADM-003`, `ADM-004`, `ADM-005`
-
-#### ADM-009 — Criar visão do morador com perfil e unidade
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `ADM-006`, `FE-005`
-
-### QA
-
-#### ADM-010 — Cobrir módulo admin com testes de rota, serviço e tenancy
-- Tipo: `qa`
-- Prioridade: `P0`
-- Dependências: `ADM-003`, `ADM-004`, `ADM-005`
-
----
-
-## EPIC-06: Módulo Financeiro do MVP
-
-**Objetivo:** entregar o núcleo financeiro real do sistema sem depender de banco no primeiro ciclo.
-
-**Dependências:** `ADM-001`, `AUTH-005`, `FE-004`, `FE-005`
-
-### Tarefas backend
-
-#### FIN-001 — Modelar entidades financeiras principais
-- Tipo: `data`
-- Prioridade: `P0`
-- Escopo:
-  - `ContaCondominio`
-  - `TaxaCondominial`
-  - `Cobranca`
-  - `Pagamento`
-  - `LancamentoFinanceiro`
-  - `CategoriaFinanceira`
-- Critérios de aceite:
-  - migrations aplicadas
-  - unique constraints por competência e unidade
-
-#### FIN-002 — Implementar serviço de geração mensal de cobranças
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `FIN-001`
-- Critérios de aceite:
-  - geração por competência
-  - prevenção de duplicidade
-
-#### FIN-003 — Implementar baixa manual e semiautomática de pagamentos
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `FIN-001`
-- Critérios de aceite:
-  - pagamento liquida cobrança
-  - lançamento financeiro correspondente gerado
-
-#### FIN-004 — Implementar cálculo de multa, juros e atraso
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `FIN-001`
-
-#### FIN-005 — Implementar indicadores de inadimplência
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `FIN-002`, `FIN-003`, `FIN-004`
-
-#### FIN-006 — Implementar comprovante e recibo
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `FIN-003`
-
-#### FIN-007 — Criar contratos de integração futura
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `FIN-001`
-- Escopo:
-  - `BoletoProvider`
-  - `PixProvider`
-  - `BankReconciliationProvider`
-
-### Tarefas frontend
-
-#### FIN-008 — Criar tela do síndico para cobranças
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FIN-002`
-
-#### FIN-009 — Criar tela do síndico para pagamentos e inadimplência
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FIN-003`, `FIN-005`
-
-#### FIN-010 — Criar visão do morador para cobranças e recibos
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FIN-006`, `FE-005`
-
-### QA
-
-#### FIN-011 — Testar regras financeiras centrais
-- Tipo: `qa`
-- Prioridade: `P0`
-- Dependências: `FIN-002`, `FIN-003`, `FIN-004`, `FIN-005`
-- Escopo:
-  - duplicidade
-  - atraso
-  - baixa
-  - tenancy
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-32
+- **Entregáveis:**
+  - `POST /api/v1/auth/login` — recebe email/password, retorna access_token + refresh_token
+  - `POST /api/v1/auth/refresh` — recebe refresh_token, retorna novo access_token
+  - `GET /api/v1/auth/me` — retorna perfil do usuário autenticado
+  - `backend/app/dependencies.py`: `get_current_user()` dependency que valida Bearer token
+  - Decorator `require_role(roles: list[str])` para proteger endpoints por perfil (admin, gestor, operador)
+- **Critérios de Aceite:**
+  - [ ] `POST /login` com credenciais válidas retorna HTTP 200 com tokens
+  - [ ] `POST /login` com senha errada retorna HTTP 401
+  - [ ] `GET /auth/me` sem Bearer token retorna HTTP 401
+  - [ ] `GET /auth/me` com token expirado retorna HTTP 401
+  - [ ] Endpoint marcado com `require_role(["admin"])` retorna 403 para usuário `operador`
 
 ---
 
-## EPIC-07: Dashboard Inicial
+## EPIC-04 — Módulo de Ingestão IoT
 
-**Objetivo:** dar visão executiva simples para o síndico e visão pessoal para o morador.
+> Endpoint de recebimento de leituras dos sensores com autenticação por API Key e validação Pydantic.
 
-**Dependências:** `ADM-008`, `FIN-009`
+### TASK-40 — Schemas e Validação de Leituras
 
-### Tarefas
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-22
+- **Entregáveis:**
+  - `app/modules/ingestao/schemas.py`:
+    - `LeituraCreate`: sensor_id (int), timestamp (datetime), valor (float), unidade (str)
+    - `LeituraBatchCreate`: leituras (list[LeituraCreate], max 100 itens)
+    - `LeituraResponse`: id, sensor_id, timestamp, valor, unidade, created_at
+  - Validações Pydantic: valor não negativo, timestamp não futuro, unidade em enum permitido
+- **Critérios de Aceite:**
+  - [ ] `LeituraCreate(valor=-1)` lança `ValidationError`
+  - [ ] `LeituraCreate(timestamp=future_datetime)` lança `ValidationError`
+  - [ ] `LeituraBatchCreate(leituras=[...] * 101)` lança `ValidationError` (max 100)
+  - [ ] Schema documentado no OpenAPI com exemplos
 
-#### DASH-001 — Implementar endpoint de resumo do síndico
-- Tipo: `backend`
-- Prioridade: `P0`
-- Critérios de aceite:
-  - total previsto
-  - total recebido
-  - inadimplência
-  - chamados abertos
-  - reservas próximas
+### TASK-41 — Repository e Service de Ingestão
 
-#### DASH-002 — Implementar endpoint de resumo do morador
-- Tipo: `backend`
-- Prioridade: `P0`
-- Critérios de aceite:
-  - cobranças pendentes
-  - reservas futuras
-  - chamados abertos
-  - comunicados recentes
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-40
+- **Entregáveis:**
+  - `app/modules/ingestao/repository.py`: `LeituraRepository.bulk_insert(leituras: list)` async
+  - `app/modules/ingestao/service.py`: `IngestaoService.processar_lote(batch: LeituraBatchCreate)` que:
+    1. Valida que todos os `sensor_id` existem no banco
+    2. Persiste no hypertable via repository
+    3. Publica evento `nova_leitura:{reservatorio_id}` no Redis pub/sub
+- **Critérios de Aceite:**
+  - [ ] 100 leituras em batch persistem em < 500ms (P95)
+  - [ ] Leitura com `sensor_id` inexistente retorna erro 422 com mensagem clara
+  - [ ] Evento Redis publicado após inserção verificado via `redis-cli SUBSCRIBE`
 
-#### DASH-003 — Criar dashboard do síndico
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `DASH-001`
+### TASK-42 — Router de Ingestão com API Key Auth
 
-#### DASH-004 — Criar home mobile do morador
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `DASH-002`
-
----
-
-## EPIC-08: Módulo Manutenção
-
-**Objetivo:** resolver abertura e tratamento de solicitações operacionais.
-
-**Dependências:** `ADM-009`, `DASH-004`
-
-### Tarefas backend
-
-#### MAN-001 — Modelar entidades de manutenção
-- Tipo: `data`
-- Prioridade: `P0`
-- Escopo:
-  - `SolicitacaoManutencao`
-  - `OrdemServico`
-  - `CategoriaServico`
-  - `Fornecedor`
-  - `TimelineEvento`
-
-#### MAN-002 — Implementar abertura de solicitação pelo morador
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `MAN-001`
-
-#### MAN-003 — Implementar triagem e geração de OS
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `MAN-002`
-
-#### MAN-004 — Implementar mudança de status e timeline
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `MAN-003`
-
-#### MAN-005 — Preparar vínculo opcional com financeiro
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `MAN-003`, `FIN-001`
-
-### Tarefas frontend
-
-#### MAN-006 — Criar abertura de chamado no portal do morador
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `MAN-002`
-
-#### MAN-007 — Criar listagem e gestão de OS para síndico
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `MAN-003`, `MAN-004`
-
-#### MAN-008 — Criar acompanhamento de chamado no mobile do morador
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `MAN-004`
-
-### QA
-
-#### MAN-009 — Testar fluxo completo de solicitação -> OS -> conclusão
-- Tipo: `qa`
-- Prioridade: `P0`
-- Dependências: `MAN-004`
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-41
+- **Entregáveis:**
+  - `app/modules/ingestao/router.py`:
+    - `POST /api/v1/ingestao/leituras` autenticado por `X-API-Key` header
+    - Dependency `get_api_key()` que valida contra `INGESTAO_API_KEY` env var
+- **Critérios de Aceite:**
+  - [ ] `POST /ingestao/leituras` com X-API-Key correta retorna HTTP 201
+  - [ ] `POST /ingestao/leituras` sem X-API-Key retorna HTTP 401
+  - [ ] `POST /ingestao/leituras` com X-API-Key errada retorna HTTP 403
+  - [ ] Rate limit NGINX de 10 req/s na rota `/api/v1/ingestao/` funcionando
 
 ---
 
-## EPIC-09: Módulo Facilities
+## EPIC-05 — Módulo de Processamento
 
-**Objetivo:** controlar áreas comuns e reservas.
+> Cálculos das regras de negócio (RN-01 a RN-06) com base nas leituras ingeridas.
 
-**Dependências:** `ADM-009`
+### TASK-50 — Políticas de Cálculo (RN-01 a RN-06)
 
-### Tarefas backend
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-42
+- **Entregáveis:**
+  - `app/modules/processamento/policies.py` com funções puras:
+    - `calcular_volume(nivel_cm: float, area_m2: float) -> float` — RN-01: $V = h \times A$
+    - `calcular_taxa_variacao(leituras: list[float], timestamps: list[datetime]) -> float` — RN-02: Δh/Δt em cm/min
+    - `estimar_tempo_transbordo(nivel_cm: float, capacidade_cm: float, taxa: float) -> Optional[float]` — RN-03: minutos até transbordo
+    - `detectar_divergencia_sensores(leituras_sensores: dict[int, float]) -> bool` — RN-06: diferença > 10% entre sensores redundantes
+    - `correlacionar_pluviometria(nivel_taxa: float, chuva_mm: float) -> str` — RN-05: classificação da correlação
+- **Critérios de Aceite:**
+  - [ ] `calcular_volume(nivel_cm=200, area_m2=250000)` retorna `500000.0` (m³)
+  - [ ] `calcular_taxa_variacao` com nível constante retorna `0.0`
+  - [ ] `estimar_tempo_transbordo` com taxa negativa ou zero retorna `None`
+  - [ ] `detectar_divergencia_sensores({1: 100.0, 2: 115.0})` retorna `True` (15% > 10%)
+  - [ ] Testes unitários para todos os 5 casos acima com ≥ 80% coverage
 
-#### FAC-001 — Modelar áreas comuns e reservas
-- Tipo: `data`
-- Prioridade: `P0`
+### TASK-51 — Service de Processamento
 
-#### FAC-002 — Implementar regras configuráveis de reserva
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `FAC-001`
+- **Tipo:** backend
+- **Prioridade:** P0
+- **Dependências:** TASK-50
+- **Entregáveis:**
+  - `app/modules/processamento/service.py`: `ProcessamentoService.processar_reservatorio(reservatorio_id: int)` que:
+    1. Busca últimas N leituras do reservatório
+    2. Aplica todas as políticas (TASK-50)
+    3. Atualiza `reservatorio.status_calculado` e campos derivados
+    4. Publica resultado no Redis pub/sub para WebSocket
+- **Critérios de Aceite:**
+  - [ ] Service chamado automaticamente via subscriber Redis quando nova leitura chega (TASK-41)
+  - [ ] `reservatorio.nivel_atual_pct` atualizado corretamente após processamento
+  - [ ] Log estruturado gerado para cada processamento com nível atual e taxa
 
-#### FAC-003 — Implementar validação de conflito de reservas
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `FAC-001`
+### TASK-52 — Testes Unitários do Módulo de Processamento
 
-#### FAC-004 — Implementar fluxo de aprovação manual/automática
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `FAC-002`, `FAC-003`
-
-### Tarefas frontend
-
-#### FAC-005 — Criar tela do síndico para cadastro de áreas comuns
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FAC-001`
-
-#### FAC-006 — Criar agenda de disponibilidade para o morador
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FAC-003`
-
-#### FAC-007 — Criar fluxo de reserva mobile-first
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `FAC-002`, `FAC-003`
-
-### QA
-
-#### FAC-008 — Testar conflitos, aprovação e limites de reserva
-- Tipo: `qa`
-- Prioridade: `P0`
-- Dependências: `FAC-004`
-
----
-
-## EPIC-10: Módulo Ocorrências
-
-**Objetivo:** registrar incidentes do condomínio sem acoplamento com segurança eletrônica.
-
-**Dependências:** `ADM-009`
-
-### Tarefas
-
-#### OCO-001 — Modelar ocorrência, categoria, tratativa e anexos
-- Tipo: `data`
-- Prioridade: `P1`
-
-#### OCO-002 — Implementar registro de ocorrência
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `OCO-001`
-
-#### OCO-003 — Implementar atualização de status e tratativa
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `OCO-002`
-
-#### OCO-004 — Criar telas de ocorrência para síndico e morador
-- Tipo: `frontend`
-- Prioridade: `P1`
-- Dependências: `OCO-002`, `OCO-003`
-
-#### OCO-005 — Cobrir ocorrência com testes mínimos
-- Tipo: `qa`
-- Prioridade: `P1`
-- Dependências: `OCO-003`
+- **Tipo:** qa
+- **Prioridade:** P0
+- **Dependências:** TASK-50, TASK-51
+- **Entregáveis:**
+  - `backend/tests/unit/test_processamento_policies.py` com ≥ 15 casos de teste
+  - Coverage ≥ 80% para `policies.py` e `service.py`
+- **Critérios de Aceite:**
+  - [ ] `pytest tests/unit/test_processamento_policies.py -v` passa todos os testes
+  - [ ] `pytest --cov=app/modules/processamento --cov-report=term` mostra ≥ 80%
+  - [ ] Casos de borda testados: nivel=0, nivel=capacidade, taxa negativa, sensores ausentes
 
 ---
 
-## EPIC-11: Módulo Social e Comunicados
+## EPIC-06 — Módulo de Alertas e Notificações
 
-**Objetivo:** criar a base de comunicação do condomínio.
+> Avaliação de thresholds, geração de alertas, ARQ worker e dispatch multicanal (Push + Email).
 
-**Dependências:** `ADM-009`, `FE-005`
+### TASK-60 — Modelos, Schemas e Thresholds (RN-04)
 
-### Tarefas backend
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-51
+- **Entregáveis:**
+  - `app/modules/alertas/models.py`: `Alerta` (id, reservatorio_id, nivel, mensagem, status, created_at), `PushSubscription`, `EmailSubscription`
+  - `app/modules/alertas/schemas.py`: `AlertaRead`, `AlertaCreate`, `PushSubscribeRequest`, `EmailSubscribeRequest`
+  - Constantes de threshold em `policies.py`: ATENCAO=60%, ALERTA=80%, CRITICO=95% (conforme RN-04)
+- **Critérios de Aceite:**
+  - [ ] Thresholds documentados em código com referência à RN-04
+  - [ ] Schema `AlertaRead` inclui: id, nivel (enum: ATENCAO/ALERTA/CRITICO/NORMAL), mensagem_pt, reservatorio_id, created_at
+  - [ ] `alembic upgrade head` cria tabelas `alerta`, `push_subscription`, `email_subscription`
 
-#### SOC-001 — Modelar comunicado e notificações registradas
-- Tipo: `data`
-- Prioridade: `P0`
+### TASK-61 — Service de Avaliação de Alertas
 
-#### SOC-002 — Implementar CRUD de comunicados
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `SOC-001`
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-60
+- **Entregáveis:**
+  - `app/modules/alertas/service.py`: `AlertaService.avaliar(reservatorio_id, nivel_pct)` que:
+    1. Verifica se o nível cruzou um threshold (escalada ou desescalada)
+    2. Cria registro em `alerta` apenas se houve mudança de nível
+    3. Enfileira task ARQ para dispatch de notificações
+  - Lógica de **de-escalada**: quando nível volta abaixo do threshold, emite alerta de normalização
+- **Critérios de Aceite:**
+  - [ ] Não cria alerta duplicado se nível permanece no mesmo threshold
+  - [ ] Cria alerta de normalização quando nível cai de ALERTA para NORMAL
+  - [ ] Task ARQ enfileirada verificável via `arq info`
+  - [ ] Teste unitário para escalada e de-escalada
 
-#### SOC-003 — Implementar segmentação por todos, bloco e unidade
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `SOC-002`
+### TASK-62 — ARQ Worker e Tasks de Notificação
 
-### Tarefas frontend
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-61
+- **Entregáveis:**
+  - `app/worker/tasks.py` com:
+    - `class WorkerSettings`: configuração ARQ (Redis URL, max_jobs, health_check_interval)
+    - `async def enviar_push_notifications(ctx, alerta_id: int)` — busca subscribers e envia via adapter
+    - `async def enviar_email_notifications(ctx, alerta_id: int)` — busca subscribers e envia via adapter
+  - Container `worker` no Docker Compose executando `python -m arq app.worker.tasks.WorkerSettings`
+- **Critérios de Aceite:**
+  - [ ] `docker compose up worker` inicia sem erros
+  - [ ] Task `enviar_push_notifications` aparece em `arq info` após ser enfileirada
+  - [ ] Falhas de envio são logadas com alerta_id e tipo de erro (sem crashar o worker)
+  - [ ] Worker respeita `max_jobs=10` (não sobrecarrega SMTP)
 
-#### SOC-004 — Criar gestão de comunicados para síndico
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `SOC-002`
+### TASK-63 — Adapter: Web Push (VAPID)
 
-#### SOC-005 — Criar feed de comunicados do morador
-- Tipo: `frontend`
-- Prioridade: `P0`
-- Dependências: `SOC-002`, `FE-005`
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-62
+- **Entregáveis:**
+  - `app/modules/alertas/adapters/push.py`: `PushAdapter.send(subscription: dict, payload: dict)` usando `pywebpush`
+  - `POST /api/v1/alertas/subscribe/push` — salva subscription do browser
+  - `DELETE /api/v1/alertas/subscribe/push` — remove subscription
+- **Critérios de Aceite:**
+  - [ ] `PushAdapter.send()` com subscription válida envia notificação ao browser (testado manualmente)
+  - [ ] `PushAdapter.send()` com subscription expirada captura `WebPushException` e remove do banco
+  - [ ] `POST /subscribe/push` retorna HTTP 201 com subscription salva
+  - [ ] Push recebido no browser inclui: título do alerta, nível (ATENÇÃO/ALERTA/CRÍTICO), nome do reservatório
 
-### QA
+### TASK-64 — Adapter: Email (SMTP) + Double Opt-In
 
-#### SOC-006 — Testar publicação, segmentação e visualização
-- Tipo: `qa`
-- Prioridade: `P0`
-- Dependências: `SOC-003`
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-62
+- **Entregáveis:**
+  - `app/modules/alertas/adapters/email.py`: `EmailAdapter.send(to: str, subject: str, body: str)` usando `aiosmtplib`
+  - `POST /api/v1/alertas/subscribe/email` — inicia double opt-in (envia email de confirmação)
+  - `GET /api/v1/alertas/subscribe/email/confirmar?token=...` — confirma assinatura
+  - `GET /api/v1/alertas/unsubscribe/email?token=...` — descadastra email
+  - Template HTML de email com link de descadastro incluído no rodapé
+- **Critérios de Aceite:**
+  - [ ] `POST /subscribe/email` envia email de confirmação e retorna HTTP 202
+  - [ ] Email não ativado não recebe notificações de alerta
+  - [ ] Link de descadastro remove assinatura sem necessidade de login
+  - [ ] `EmailAdapter.send()` usa conexão async com TLS (STARTTLS ou SSL)
 
----
+### TASK-65 — CRUD de Alertas (Endpoints Técnicos)
 
-## EPIC-12: Notificações por E-mail e WhatsApp
-
-**Objetivo:** implementar os dois canais oficiais do MVP.
-
-**Dependências:** `SOC-002`, `FIN-006`, `INF-001`
-
-### Tarefas backend
-
-#### NOTIF-001 — Criar módulo de notificações com contrato por canal
-- Tipo: `backend`
-- Prioridade: `P0`
-- Critérios de aceite:
-  - interface unificada disponível
-  - domínio não depende de SDK externo
-
-#### NOTIF-002 — Implementar provider de e-mail
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `NOTIF-001`
-
-#### NOTIF-003 — Implementar provider de WhatsApp (log-only no MVP)
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `NOTIF-001`
-- Nota: No MVP, a implementação é log-only (registra em log a mensagem que seria enviada). A interface abstrata garante que toda lógica de domínio já defina quando e o quê notificar por WhatsApp. O provider real será conectado quando um fornecedor for definido, sem retrabalho.
-- Critérios de aceite:
-  - provider implementa a interface `NotificationChannel`
-  - mensagens são registradas em log estruturado com destinatário, template e payload
-  - domínio não tem conhecimento de que o envio é simulado
-
-#### NOTIF-004 — Implementar fila leve para envio assíncrono
-- Tipo: `backend`
-- Prioridade: `P0`
-- Dependências: `NOTIF-002`
-- Nota: NOTIF-003 (WhatsApp log-only) é P1 e pode ser integrado à fila depois, sem bloquear este item.
-
-#### NOTIF-005 — Implementar registro de entrega, falha e retry
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `NOTIF-004`
-
-#### NOTIF-006 — Disparar notificações a partir de eventos de domínio
-- Tipo: `backend`
-- Prioridade: `P1`
-- Dependências: `SOC-002`, `FIN-006`, `MAN-004`, `NOTIF-004`
-
-### QA
-
-#### NOTIF-007 — Testar envio, fallback e reprocessamento
-- Tipo: `qa`
-- Prioridade: `P1`
-- Dependências: `NOTIF-005`
-
----
-
-## EPIC-13: Qualidade, Testes e Seeds
-
-**Objetivo:** reduzir regressão e acelerar desenvolvimento local.
-
-**Dependências:** `CORE-004`, `FE-001`
-
-### Tarefas
-
-#### QA-001 — Criar factories e fixtures de backend
-- Tipo: `qa`
-- Prioridade: `P0`
-
-#### QA-002 — Criar seeds de demo para condomínio piloto
-- Tipo: `data`
-- Prioridade: `P0`
-- Dependências: `ADM-001`, `FIN-001`, `MAN-001`, `FAC-001`, `SOC-001`
-- Escopo do seed:
-  - 1 condomínio com 2 blocos (A e B)
-  - ~10 unidades distribuídas entre os blocos (6 no bloco A, 4 no bloco B)
-  - ~15 moradores (mix de proprietários, inquilinos e dependentes)
-  - 1 síndico vinculado ao condomínio
-  - 1 funcionário (zelador)
-  - 3 meses de cobranças (com registros pagos, pendentes e vencidos)
-  - ~5 solicitações de manutenção em status variados (aberta, em andamento, concluída)
-  - 3 áreas comuns cadastradas (salão de festas, churrasqueira, quadra)
-  - ~4 reservas (aprovadas, pendentes, passadas)
-  - ~5 comunicados de exemplo (aviso, emergência, informativo)
-- Critérios de aceite:
-  - seed executável por comando único (`python -m scripts.seed` ou equivalente)
-  - seed é idempotente (pode ser reexecutado sem duplicar dados)
-  - todos os perfis de usuário representados com senhas conhecidas para testes
-  - dados coerentes entre si (cobrança referencia unidades reais, etc.)
-
-#### QA-003 — Configurar testes de integração backend
-- Tipo: `qa`
-- Prioridade: `P0`
-
-#### QA-004 — Configurar Vitest e Testing Library no frontend
-- Tipo: `qa`
-- Prioridade: `P1`
-- Dependências: `FE-001`
-
-#### QA-005 — Configurar Playwright para jornadas críticas
-- Tipo: `qa`
-- Prioridade: `P1`
-- Dependências: `FE-006`
-- Jornadas mínimas:
-  - login
-  - geração de cobrança
-  - pagamento
-  - abertura de chamado
-  - reserva
-  - publicação de comunicado
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-61
+- **Entregáveis:**
+  - `GET /api/v1/alertas` — lista alertas com filtros (reservatorio_id, nivel, período)
+  - `GET /api/v1/alertas/{id}` — detalhe de alerta
+  - `PATCH /api/v1/alertas/{id}/reconhecer` — marca como reconhecido (requer role gestor ou admin)
+- **Critérios de Aceite:**
+  - [ ] `GET /alertas?reservatorio_id=1&nivel=CRITICO` retorna apenas alertas críticos do reservatório 1
+  - [ ] `PATCH /alertas/1/reconhecer` por usuário `operador` retorna HTTP 403
+  - [ ] `PATCH /alertas/1/reconhecer` por usuário `gestor` retorna HTTP 200
 
 ---
 
-## EPIC-14: Relatórios e Expansão Administrativa
+## EPIC-07 — Endpoints Dashboard (Backend)
 
-**Objetivo:** ampliar a capacidade operacional após estabilizar o MVP.
+> Endpoints REST e WebSocket para alimentar os dashboards técnico e público.
 
-**Dependências:** `FIN-011`, `NOTIF-006`
+### TASK-70 — Endpoints de Reservatórios
 
-### Tarefas
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-51
+- **Entregáveis:**
+  - `GET /api/v1/reservatorios` — lista todos os reservatórios com status atual
+  - `GET /api/v1/reservatorios/{id}` — detalhe de um reservatório
+  - `GET /api/v1/reservatorios/{id}/status` — status calculado atual (nível%, volume, taxa, tempo_transbordo)
+  - `GET /api/v1/reservatorios/{id}/historico?periodo=24h` — série histórica de leituras (1h, 6h, 24h, 7d, 30d)
+  - `GET /api/v1/reservatorios/{id}/alertas` — alertas ativos do reservatório
+- **Critérios de Aceite:**
+  - [ ] `GET /reservatorios` retorna lista com campos: id, nome, coordenadas, capacidade_m3, nivel_atual_pct, status
+  - [ ] `GET /reservatorios/1/historico?periodo=24h` retorna ≤ 1440 pontos (1 por minuto)
+  - [ ] `GET /reservatorios/1/historico?periodo=7d` usa continuous aggregate (horário) para performance
+  - [ ] Tempo de resposta P95 ≤ 200ms para todos os endpoints
 
-#### EXP-001 — Implementar contas a pagar
-- Tipo: `backend`
-- Prioridade: `P2`
+### TASK-71 — Endpoint Público
 
-#### EXP-002 — Implementar fluxo de caixa e demonstrativos
-- Tipo: `backend`
-- Prioridade: `P2`
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-70
+- **Entregáveis:**
+  - `GET /api/v1/publico/status` — retorna lista simplificada de todos os reservatórios (sem auth)
+  - Campos expostos: id, nome, status (NORMAL/ATENCAO/ALERTA/CRITICO), nivel_pct, ultima_atualizacao
+  - **Sem** dados técnicos sensíveis (coordenadas GPS omitidas ou aproximadas)
+- **Critérios de Aceite:**
+  - [ ] `GET /publico/status` não requer header `Authorization`
+  - [ ] Resposta cacheada no Redis por 30 segundos para reduzir carga
+  - [ ] Schema não expõe dados de sensores individuais nem histórico
 
-#### EXP-003 — Implementar geração de PDF para recibos e relatórios
-- Tipo: `backend`
-- Prioridade: `P2`
+### TASK-72 — WebSocket Dashboard Técnico
 
-#### EXP-004 — Criar telas de contas a pagar e fluxo de caixa
-- Tipo: `frontend`
-- Prioridade: `P2`
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-70
+- **Entregáveis:**
+  - `WS /ws/dashboard/{reservatorio_id}` — requer JWT Bearer no handshake (query param `token`)
+  - Publica mensagem JSON a cada nova leitura processada com status completo
+  - Desconecta cliente após token expirado
+- **Critérios de Aceite:**
+  - [ ] `wscat -c "ws://localhost/ws/dashboard/1?token=VALID_JWT"` conecta e recebe mensagens
+  - [ ] `wscat -c "ws://localhost/ws/dashboard/1?token=INVALID"` recebe `4001 Unauthorized`
+  - [ ] Múltiplos clientes WS para o mesmo reservatório recebem mensagens simultaneamente
+  - [ ] Mensagem inclui: nivel_cm, nivel_pct, volume_m3, taxa_cm_min, tempo_transbordo_min, status, timestamp
 
-#### EXP-005 — Implementar assembleias básicas
-- Tipo: `backend`
-- Prioridade: `P2`
+### TASK-73 — WebSocket Dashboard Público
 
-#### EXP-006 — Implementar portaria básica
-- Tipo: `backend`
-- Prioridade: `P2`
-
----
-
-## EPIC-15: Integrações Bancárias Futuras
-
-**Objetivo:** adicionar automação financeira sem acoplar o núcleo do produto.
-
-**Dependências:** `FIN-007`, `EXP-002`
-
-### Tarefas
-
-#### BANK-001 — Escolher fornecedor bancário ou gateway
-- Tipo: `produto-tecnico`
-- Prioridade: `P3`
-
-#### BANK-002 — Implementar emissão de boleto real
-- Tipo: `backend`
-- Prioridade: `P3`
-- Dependências: `BANK-001`
-
-#### BANK-003 — Implementar Pix
-- Tipo: `backend`
-- Prioridade: `P3`
-- Dependências: `BANK-001`
-
-#### BANK-004 — Implementar conciliação automática
-- Tipo: `backend`
-- Prioridade: `P3`
-- Dependências: `BANK-001`
-
----
-
-## 5. Backlog mínimo do MVP
-
-O MVP só pode começar desenvolvimento funcional depois de concluir estes itens:
-
-1. `BT-001`
-2. `BT-003`
-3. `INF-001`
-4. `CORE-001`
-5. `CORE-002`
-6. `CORE-003`
-7. `CORE-004`
-8. `AUTH-001`
-9. `AUTH-002`
-10. `FE-001`
-11. `FE-002`
-12. `FE-003`
-13. `FE-004`
-14. `FE-005`
-
-O MVP funcional inicial deve obrigatoriamente concluir:
-
-1. `ADM-001` até `ADM-010`
-2. `FIN-001` até `FIN-011`
-3. `DASH-001` até `DASH-004`
-4. `MAN-001` até `MAN-009`
-5. `FAC-001` até `FAC-008`
-6. `SOC-001` até `SOC-006`
-7. `NOTIF-001` até `NOTIF-006`
+- **Tipo:** backend
+- **Prioridade:** P1
+- **Dependências:** TASK-71
+- **Entregáveis:**
+  - `WS /ws/publico/{reservatorio_id}` — sem autenticação
+  - Publica apenas: status (NORMAL/ATENCAO/ALERTA/CRITICO), nivel_pct, ultima_atualizacao
+- **Critérios de Aceite:**
+  - [ ] `wscat -c "ws://localhost/ws/publico/1"` conecta sem token
+  - [ ] Mensagem pública não inclui taxa, tempo de transbordo ou dados de sensores individuais
+  - [ ] Rate limit de 1 conexão simultânea por IP (NGINX limit_conn)
 
 ---
 
-## 6. Dependências críticas
+## EPIC-08 — Frontend Base e PWA
 
-1. Sem `CORE-004`, nenhum módulo deve criar tabela fora de migration.
-2. Sem `AUTH-005`, nenhum módulo de domínio está apto para produção.
-3. Sem `FE-005`, a prioridade de experiência do morador não está atendida.
-4. Sem `FIN-003`, o produto ainda não resolve o ciclo financeiro mínimo.
-5. Sem `NOTIF-003`, a relação síndico <-> morador fica incompleta para o MVP definido.
+> Scaffolding do projeto React, configuração de dependências, autenticação e Service Worker.
+
+### TASK-80 — Setup Vite + React + TypeScript
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-02
+- **Entregáveis:**
+  - `frontend/` com `npm create vite@latest` (React + TypeScript)
+  - Dependências instaladas: `react-router-dom`, `@tanstack/react-query`, `zustand`, `axios`, `recharts`, `leaflet`, `react-leaflet`
+  - `tailwind.config.ts` configurado com purge correto
+  - `shadcn/ui` inicializado (`npx shadcn-ui@latest init`)
+  - `tsconfig.json` com `strict: true`, path aliases `@/` → `src/`
+- **Critérios de Aceite:**
+  - [ ] `npm run dev` inicia servidor de dev sem erros
+  - [ ] `npm run build` gera `dist/` sem erros de TypeScript
+  - [ ] `npm run type-check` (tsc --noEmit) passa sem erros
+  - [ ] Bundle final gzipped ≤ 250 KB
+
+### TASK-81 — Axios Client com JWT Interceptor
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-80, TASK-33
+- **Entregáveis:**
+  - `src/api/client.ts`: Axios instance com `baseURL=/api/v1`
+  - Request interceptor: adiciona `Authorization: Bearer <token>` de `useAuthStore`
+  - Response interceptor: captura `401`, tenta refresh token; se falhar, redireciona para `/login`
+- **Critérios de Aceite:**
+  - [ ] Request para endpoint autenticado sem token retorna 401 e redireciona para `/login`
+  - [ ] Request com token expirado dispara refresh automaticamente sem o usuário perceber
+  - [ ] Após logout (`clearAuth()` no Zustand), requests não enviam token
+
+### TASK-82 — Zustand Auth Store + Rotas Protegidas
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-81
+- **Entregáveis:**
+  - `src/store/auth.ts`: Zustand store com `token`, `refreshToken`, `user`, `setAuth()`, `clearAuth()`
+  - Token persistido no `localStorage` (com `zustand/middleware/persist`)
+  - `src/App.tsx` com `react-router-dom` configurando rotas:
+    - `/` → `PublicDashboard` (sem proteção)
+    - `/dashboard` → `TechDashboard` (requer auth: role gestor/admin)
+    - `/login` → `Login`
+    - `/admin` → `Admin` (requer auth: role admin)
+- **Critérios de Aceite:**
+  - [ ] Acesso a `/dashboard` sem token redireciona para `/login`
+  - [ ] Após login bem-sucedido, token salvo no localStorage persiste após refresh de página
+  - [ ] `clearAuth()` remove token do localStorage e do store
+  - [ ] Usuário `operador` acessando `/admin` recebe página 403
+
+### TASK-83 — PWA: Manifest e Service Worker
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-80
+- **Entregáveis:**
+  - `vite.config.ts` com `vite-plugin-pwa` configurado: `registerType: 'autoUpdate'`, estratégia `CacheFirst` para assets
+  - `public/manifest.json`: name, short_name, theme_color, background_color, icons (192×192, 512×512, maskable)
+  - `src/sw.ts` com precache de shell (index.html, JS, CSS) e runtime cache para `/api/v1/publico/status`
+  - Ícones da aplicação gerados em todos os tamanhos requeridos
+- **Critérios de Aceite:**
+  - [ ] Chrome DevTools > Application > Manifest: sem erros
+  - [ ] Chrome DevTools > Application > Service Workers: worker ativo
+  - [ ] Com rede offline (DevTools Network throttle), `PublicDashboard` carrega do cache
+  - [ ] "Add to Home Screen" disponível em dispositivo Android/iOS
+
+### TASK-84 — Hook de Push Subscription (VAPID)
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-83, TASK-63
+- **Entregáveis:**
+  - `src/hooks/usePushSubscription.ts`:
+    - `subscribe()`: solicita permissão, cria subscription via `PushManager.subscribe()`, envia para `POST /alertas/subscribe/push`
+    - `unsubscribe()`: remove subscription local e `DELETE /alertas/subscribe/push`
+    - Estado: `isSubscribed`, `isLoading`, `error`
+- **Critérios de Aceite:**
+  - [ ] `subscribe()` chama `Notification.requestPermission()` antes de criar subscription
+  - [ ] VAPID `applicationServerKey` carregado de variável de ambiente `VITE_VAPID_PUBLIC_KEY`
+  - [ ] Se permissão negada pelo usuário, `error` é definido com mensagem amigável
+  - [ ] Push recebida no browser enquanto aba está fechada (testado em Chrome)
 
 ---
 
-## 7. Critério de pronto por tarefa
+## EPIC-09 — Dashboard Técnico
 
-Cada tarefa deve atender todos os itens abaixo, quando aplicável:
+> Interface completa para gestores e operadores com mapa, gráficos e dados em tempo real.
 
-1. código implementado
-2. testes mínimos cobrindo o comportamento crítico
-3. logs e erros coerentes
-4. controle de permissão aplicado
-5. filtro por `condominio_id` aplicado
-6. documentação técnica atualizada se a tarefa alterar contrato relevante
-7. interface concluída, quando a tarefa incluir frontend
+### TASK-90 — Componente: Mapa Leaflet com Reservatórios
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-82, TASK-70
+- **Entregáveis:**
+  - `src/components/ReservoirMap.tsx`: mapa Leaflet com `react-leaflet`
+  - Marcadores coloridos por status: verde (NORMAL), amarelo (ATENCAO), laranja (ALERTA), vermelho (CRITICO)
+  - Popup ao clicar: nome, nível%, status, última atualização
+  - Tiles OpenStreetMap
+- **Critérios de Aceite:**
+  - [ ] Mapa renderiza na página sem erros de console
+  - [ ] Marcadores mudam de cor quando status do reservatório muda (via WebSocket)
+  - [ ] Mapa é responsivo e funciona em tela de 320px de largura (mobile)
+  - [ ] Tiles carregados via HTTPS (sem mixed content warning)
+
+### TASK-91 — Componente: Gráfico de Nível (Série Temporal)
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-70
+- **Entregáveis:**
+  - `src/components/LevelChart.tsx`: Recharts `LineChart` com eixo X de tempo
+  - Seletor de período: 1h / 6h / 24h / 7d / 30d
+  - Linhas de referência horizontal nos thresholds: 60%, 80%, 95%
+  - Tooltip com timestamp e valor exato
+- **Critérios de Aceite:**
+  - [ ] Troca de período refaz a query e atualiza o gráfico
+  - [ ] Linhas de threshold visíveis com labels "Atenção / Alerta / Crítico"
+  - [ ] Gráfico responsivo (`ResponsiveContainer width="100%"`)
+  - [ ] Loading skeleton exibido durante fetch
+
+### TASK-92 — Painel de Indicadores em Tempo Real
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-72
+- **Entregáveis:**
+  - `src/components/SensorStatusPanel.tsx`: cards com dados do WebSocket (`/ws/dashboard/{id}`)
+  - Cards: Nível Atual (%), Volume Atual (m³), Taxa de Variação (cm/min), Estimativa de Transbordo (min), Status dos Sensores
+  - Hook `src/hooks/useWebSocket.ts` com reconexão automática (exponential backoff)
+- **Critérios de Aceite:**
+  - [ ] Dados atualizados sem necessidade de reload quando nova leitura chega
+  - [ ] Desconexão WebSocket exibe banner "Conexão perdida — reconectando..."
+  - [ ] Reconexão automática em até 30 segundos
+  - [ ] "Estimativa de transbordo" exibe "—" quando taxa ≤ 0
+
+### TASK-93 — Tabela de Histórico de Alertas com Exportação CSV
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-65
+- **Entregáveis:**
+  - Tabela paginada com colunas: Data/Hora, Reservatório, Nível, Mensagem, Status (Ativo/Reconhecido)
+  - Filtros: reservatório, nível, período
+  - Botão "Exportar CSV" gerando arquivo com todos os alertas do filtro atual
+- **Critérios de Aceite:**
+  - [ ] Paginação com 20 itens por página
+  - [ ] CSV exportado abre corretamente no Excel com encoding UTF-8 BOM
+  - [ ] Filtro por `nivel=CRITICO` exibe apenas alertas críticos
 
 ---
 
-## 8. Recomendação de execução imediata
+## EPIC-10 — Dashboard Público
 
-A melhor sequência para iniciar o desenvolvimento é:
+> Interface cidadã com semáforo de risco, tendência e inscrição para alertas. WCAG AA.
 
-1. `BT-001`, `BT-003`
-2. `INF-001` até `INF-004`
-3. `CORE-001` até `CORE-008`
-4. `AUTH-001` até `AUTH-005`
-5. `FE-001` até `FE-006`
-6. `ADM-001` até `ADM-010`
-7. `FIN-001` até `FIN-011`
-8. `DASH-001` até `DASH-004`
-9. `MAN-001` até `MAN-009`
-10. `FAC-001` até `FAC-008`
-11. `SOC-001` até `SOC-006`
-12. `NOTIF-001` até `NOTIF-006`
+### TASK-100 — Componente: Semáforo de Status (WCAG AA)
 
-Essa sequência mantém o produto centrado no que foi definido como núcleo real: síndico, morador, financeiro, comunicação e operação do condomínio.
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-82, TASK-71
+- **Entregáveis:**
+  - `src/components/AlertBadge.tsx`: componente semáforo com 4 estados
+  - Cores: verde (#22C55E), amarelo (#EAB308), laranja (#F97316), vermelho (#EF4444)
+  - Texto em PT-BR acessível: "Normal", "Atenção", "Alerta", "Situação Crítica"
+  - Ícone + cor + texto (não depende apenas de cor para acessibilidade — WCAG 1.4.1)
+- **Critérios de Aceite:**
+  - [ ] Contraste WCAG AA verificado com ferramenta (mínimo 4.5:1 para texto normal)
+  - [ ] Componente usa `role="status"` e `aria-label` descritivo
+  - [ ] Estado CRITICO exibe ícone pulsante para chamar atenção
+  - [ ] Funciona corretamente em tema escuro e claro
+
+### TASK-101 — Componente: Indicador de Tendência
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-73
+- **Entregáveis:**
+  - Indicador visual de tendência: ↑ subindo / → estável / ↓ caindo
+  - Baseado na `taxa_variacao` recebida do WebSocket público
+  - Texto: "Nível subindo" / "Nível estável" / "Nível caindo"
+- **Critérios de Aceite:**
+  - [ ] Ícone + texto (não apenas ícone) para acessibilidade
+  - [ ] Transição suave ao mudar de estado
+
+### TASK-102 — Formulário de Inscrição para Alertas
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-63, TASK-64, TASK-84
+- **Entregáveis:**
+  - `src/components/AlertSubscribeForm.tsx` com duas opções:
+    - "Receber Push no navegador" (botão que chama `usePushSubscription.subscribe()`)
+    - "Receber por Email" (campo email + botão que chama `POST /subscribe/email`)
+  - Feedback: "Inscrição realizada! Verifique seu email para confirmar." (email) / "Notificações ativas!" (push)
+- **Critérios de Aceite:**
+  - [ ] Botão Push desabilitado em browsers sem suporte a `PushManager`
+  - [ ] Formulário de email valida formato antes de enviar
+  - [ ] Mensagens de sucesso/erro claras e acessíveis (não apenas cor)
+
+### TASK-103 — Banner Offline e Última Atualização
+
+- **Tipo:** frontend
+- **Prioridade:** P1
+- **Dependências:** TASK-83
+- **Entregáveis:**
+  - Banner amarelo exibido quando browser está offline (`navigator.onLine` + evento `offline`)
+  - Timestamp "Última atualização: HH:MM:SS" atualizado a cada mensagem WebSocket
+  - Dados em cache exibidos normalmente com aviso "Dados podem estar desatualizados"
+- **Critérios de Aceite:**
+  - [ ] Banner aparece imediatamente ao perder conexão
+  - [ ] Banner desaparece ao reconectar
+  - [ ] Timestamp mostra a diferença relativa: "há 2 minutos" quando dado é antigo
+
+---
+
+## EPIC-11 — Integração Climática
+
+> Client HTTP para CPTEC/INPE com fallback OpenWeatherMap e scheduler de atualização.
+
+### TASK-110 — HTTP Client CPTEC/INPE
+
+- **Tipo:** backend
+- **Prioridade:** P2
+- **Dependências:** TASK-51
+- **Entregáveis:**
+  - `app/modules/clima/client.py`: `CPTECClient.get_previsao(lat, lon)` usando `httpx` async
+  - `app/modules/clima/client.py`: `OpenWeatherClient.get_previsao(lat, lon)` como fallback
+  - Lógica de fallback: tenta CPTEC, se timeout/erro, usa OpenWeatherMap
+  - Timeout de 5s para cada request; retry 2x com backoff
+- **Critérios de Aceite:**
+  - [ ] `CPTECClient.get_previsao(-23.5, -46.6)` retorna dados de previsão ou lança `ClimaServiceException`
+  - [ ] Fallback automático para OpenWeatherMap quando CPTEC retorna 5xx
+  - [ ] Chave API OpenWeatherMap carregada de `OPENWEATHER_API_KEY` env var (nunca hardcoded)
+
+### TASK-111 — Service e Scheduler Climático
+
+- **Tipo:** backend
+- **Prioridade:** P2
+- **Dependências:** TASK-110, TASK-22
+- **Entregáveis:**
+  - `app/modules/clima/service.py`: `ClimaService.atualizar_todos_reservatorios()` persiste dados em `leitura_climatica`
+  - Scheduler via APScheduler (ou cron job ARQ) rodando a cada 30 minutos
+  - `GET /api/v1/reservatorios/{id}/clima` expõe dados climáticos mais recentes
+- **Critérios de Aceite:**
+  - [ ] Dados climáticos persistidos em `leitura_climatica` a cada 30 minutos
+  - [ ] `GET /reservatorios/1/clima` retorna: temperatura, umidade, precipitacao_mm, condicao
+  - [ ] Falha na API climática não interrompe o processamento de leituras de sensores (isolation)
+
+---
+
+## EPIC-12 — Testes e Qualidade
+
+> Suite de testes unitários e de integração cobrindo os módulos críticos do MVP.
+
+### TASK-120 — Testes de Integração: Ingestão
+
+- **Tipo:** qa
+- **Prioridade:** P2
+- **Dependências:** TASK-42
+- **Entregáveis:**
+  - `backend/tests/integration/test_ingestao.py` usando `httpx.AsyncClient` com banco de teste
+  - Cenários: ingestão bem-sucedida (batch), API Key inválida, sensor inexistente, batch > 100 itens
+- **Critérios de Aceite:**
+  - [ ] `pytest tests/integration/test_ingestao.py -v` passa sem erros
+  - [ ] Banco de teste isolado (usando fixture com rollback por teste)
+  - [ ] ≥ 5 cenários de teste cobertos
+
+### TASK-121 — Testes de Integração: Alertas
+
+- **Tipo:** qa
+- **Prioridade:** P2
+- **Dependências:** TASK-65
+- **Entregáveis:**
+  - `backend/tests/integration/test_alertas.py`
+  - Cenários: listagem de alertas, reconhecimento por gestor, rejeição por operador, criação de alerta via processamento
+- **Critérios de Aceite:**
+  - [ ] `pytest tests/integration/test_alertas.py -v` passa sem erros
+  - [ ] Teste de RBAC verifica que `operador` recebe 403 em endpoint restrito
+
+### TASK-122 — Teste PWA: Offline e Push
+
+- **Tipo:** qa
+- **Prioridade:** P2
+- **Dependências:** TASK-83, TASK-84
+- **Entregáveis:**
+  - Checklist de testes manuais documentado em `Docs/QA_CHECKLIST.md`
+  - Cobertura: offline mode, add to home screen, push notification recebida com aba fechada
+- **Critérios de Aceite:**
+  - [ ] Checklist executado e aprovado em Chrome Android (real ou emulado)
+  - [ ] Todos os itens do checklist marcados como PASS
+
+---
+
+## EPIC-13 — Documentação Final e Entrega
+
+> Finalização de toda documentação técnica e acadêmica para entrega do TCC.
+
+### TASK-130 — README de Deploy e Operação
+
+- **Tipo:** docs
+- **Prioridade:** P3
+- **Dependências:** EPIC-01 concluído
+- **Entregáveis:**
+  - `README.md` atualizado com:
+    - Pré-requisitos (Docker ≥ 24, Docker Compose V2)
+    - Setup em 5 passos (clone, .env, docker compose up, seed, acesso)
+    - URLs dos serviços (app, API docs, health check)
+    - Variáveis de ambiente documentadas (nome, descrição, exemplo)
+    - Comandos de manutenção (logs, backup, restore)
+- **Critérios de Aceite:**
+  - [ ] Desenvolvedor novo consegue subir o sistema seguindo apenas o README
+  - [ ] Todos os comandos testados em ambiente limpo (Ubuntu 24.04)
+
+### TASK-131 — Revisão Final dos Documentos
+
+- **Tipo:** docs
+- **Prioridade:** P3
+- **Dependências:** todos os EPICs P0 e P1 concluídos
+- **Entregáveis:**
+  - Revisão de coerência entre 001 (Plano), 002 (SRS), 003 (PRD), 004 (DevSpecs), 005 (Backlog)
+  - Atualização do cronograma real vs planejado
+  - Glossário consistente entre todos os documentos
+- **Critérios de Aceite:**
+  - [ ] Nenhuma contradição de nomenclatura entre os documentos
+  - [ ] Cronograma atualizado com datas reais de conclusão por EPIC
+  - [ ] Todos os RFs do SRS mapeados para pelo menos uma TASK no Backlog
+
+### TASK-132 — Apresentação Acadêmica
+
+- **Tipo:** docs
+- **Prioridade:** P3
+- **Dependências:** TASK-131
+- **Entregáveis:**
+  - Slides da apresentação final (formato PPTX ou PDF) com:
+    - Contexto e problema (enchentes RMSP, piscinões)
+    - Solução proposta e arquitetura
+    - Demonstração ao vivo (ou vídeo)
+    - Resultados e métricas alcançadas
+    - Dificuldades e aprendizados
+- **Critérios de Aceite:**
+  - [ ] Apresentação de 15-20 minutos
+  - [ ] Demo ao vivo funcional (ou vídeo de fallback gravado)
+  - [ ] Diagrama de arquitetura incluído nos slides
+
+---
+
+## Resumo de Tarefas por Tipo
+
+| Tipo | Quantidade | Tarefas |
+|------|-----------|---------|
+| infra | 7 | TASK-00, 01, 02, 03, 10, 11, 12, 13 |
+| data | 5 | TASK-20, 21, 22, 23, 24 |
+| backend | 20 | TASK-30 a 35, 40 a 42, 50 a 52, 60 a 65, 70 a 73, 110, 111 |
+| frontend | 13 | TASK-80 a 84, 90 a 93, 100 a 103 |
+| qa | 5 | TASK-52, 120, 121, 122 |
+| docs | 3 | TASK-130, 131, 132 |
+
+---
+
+*Documento gerado como parte do Projeto Integrador PJI510 — UNIVESP 2026/S1*
+

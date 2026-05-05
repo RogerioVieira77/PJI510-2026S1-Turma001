@@ -1,0 +1,102 @@
+import { useState, useCallback } from 'react'
+import { useWebSocket } from '@/hooks/useWebSocket'
+import type { StatusReservatorio } from '@/types/api'
+
+interface Props {
+  reservatorioId: number
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { bg: string; text: string; label: string }> = {
+    EMERGENCIA: { bg: 'bg-red-100', text: 'text-red-700', label: 'Emergência' },
+    ALERTA: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Alerta' },
+    ATENCAO: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Atenção' },
+    NORMAL: { bg: 'bg-green-100', text: 'text-green-700', label: 'Normal' },
+  }
+  const s = map[status] ?? map['NORMAL']
+  return (
+    <span className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${s.bg} ${s.text}`}>
+      {s.label}
+    </span>
+  )
+}
+
+interface CardProps {
+  label: string
+  value: string
+  sub?: string
+}
+
+function MetricCard({ label, value, sub }: CardProps) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="mb-1 text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
+      <p className="text-2xl font-bold text-slate-800">{value}</p>
+      {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
+    </div>
+  )
+}
+
+export default function SensorStatusPanel({ reservatorioId }: Props) {
+  const [status, setStatus] = useState<StatusReservatorio | null>(null)
+
+  const handleMessage = useCallback((data: unknown) => {
+    setStatus(data as StatusReservatorio)
+  }, [])
+
+  const { connected, reconnecting } = useWebSocket(reservatorioId, handleMessage)
+
+  const nivelPct = status?.nivel_pct != null ? `${status.nivel_pct.toFixed(1)}%` : '—'
+  const volumeM3 = status?.volume_m3 != null ? `${status.volume_m3.toFixed(0)} m³` : '—'
+  const taxa = status?.taxa_cm_min != null ? `${status.taxa_cm_min.toFixed(2)} cm/min` : '—'
+  const tempoTransbordo =
+    status?.tempo_transbordo_min != null && status.tempo_transbordo_min > 0
+      ? `${status.tempo_transbordo_min} min`
+      : '—'
+  const divergencia = status?.divergencia_sensores ? 'Divergência detectada' : 'Sensores OK'
+  const ultimaAtualizacao = status?.timestamp
+    ? new Date(status.timestamp).toLocaleTimeString('pt-BR')
+    : '—'
+
+  return (
+    <div className="space-y-4">
+      {/* Banner de reconexão */}
+      {(reconnecting || !connected) && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2 text-sm text-yellow-800"
+        >
+          <span className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
+          {reconnecting ? 'Reconectando ao servidor…' : 'Aguardando conexão…'}
+        </div>
+      )}
+
+      {/* Status + última atualização */}
+      <div className="flex items-center justify-between">
+        {status ? <StatusBadge status={status.status} /> : <span className="text-sm text-slate-400">—</span>}
+        <span className="text-xs text-slate-400">Atualizado às {ultimaAtualizacao}</span>
+      </div>
+
+      {/* Indicadores */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <MetricCard label="Nível Atual" value={nivelPct} />
+        <MetricCard label="Volume" value={volumeM3} />
+        <MetricCard
+          label="Taxa de Variação"
+          value={taxa}
+          sub={status && status.taxa_cm_min > 0 ? '↑ Subindo' : status && status.taxa_cm_min < 0 ? '↓ Caindo' : '→ Estável'}
+        />
+        <MetricCard
+          label="Transbordo estimado"
+          value={tempoTransbordo}
+          sub={tempoTransbordo === '—' ? 'Nível estável ou caindo' : undefined}
+        />
+        <MetricCard
+          label="Sensores"
+          value={divergencia}
+          sub={status?.divergencia_sensores ? 'Verifique os sensores' : undefined}
+        />
+      </div>
+    </div>
+  )
+}

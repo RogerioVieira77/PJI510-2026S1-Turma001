@@ -4,9 +4,9 @@
 
 **Projeto:** PJI510 — Projeto Integrador em Engenharia da Computação  
 **Instituição:** UNIVESP — Universidade Virtual do Estado de São Paulo  
-**Versão:** 1.0  
-**Data:** 02/04/2026  
-**Status:** Em Desenvolvimento  
+**Versão:** 1.1  
+**Data:** 05/05/2026  
+**Status:** Concluído ✅  
 
 ---
 
@@ -280,23 +280,26 @@ O projeto adota uma **metodologia ágil adaptada para contexto acadêmico**, com
 
 ## 8. Cronograma Macro
 
+> **v1.1 — Atualização pós-conclusão (05/05/2026):**  
+> A coluna *"Concluído em"* reflete as datas reais de término de cada fase. Todas as fases foram concluídas dentro do semestre letivo 2026/S1.
+
 O desenvolvimento está organizado em 6 fases, com duração estimada baseada em sprints de 2 semanas.
 
 ### Fase 0 — Planejamento e Documentação Técnica
 
-**Duração estimada:** 3 sprints (6 semanas)
+**Duração estimada:** 3 sprints (6 semanas) | **Concluído em:** 20/03/2026 ✅
 
-| Entrega | Descrição | Sprint |
-|---------|-----------|--------|
-| Plano de Desenvolvimento | Visão geral, escopo, cronograma (este documento) | S0 |
-| SRS | Requisitos funcionais e não-funcionais, User Stories | S1 |
-| PRD | Pesquisa, estado da arte, fundamentação teórica | S1 |
-| DevSpecs | Especificação técnica, arquitetura, diagramas | S0 |
-| Backlog Técnico | Épicos e tarefas priorizadas | S2 |
+| Entrega | Descrição | Sprint | Status |
+|---------|-----------|--------|--------|
+| Plano de Desenvolvimento | Visão geral, escopo, cronograma (este documento) | S0 | ✅ Concluído |
+| SRS | Requisitos funcionais e não-funcionais, User Stories | S1 | ✅ Concluído |
+| PRD | Pesquisa, estado da arte, fundamentação teórica | S1 | ✅ Concluído |
+| DevSpecs | Especificação técnica, arquitetura, diagramas | S0 | ✅ Concluído |
+| Backlog Técnico | Épicos e tarefas priorizadas | S2 | ✅ Concluído |
 
 ### Fase 1 — Setup de Infraestrutura
 
-**Duração estimada:** 1 sprint (2 semanas)
+**Duração estimada:** 1 sprint (2 semanas) | **Concluído em:** 28/03/2026 ✅
 
 - Docker Compose com todos os serviços (NGINX, FastAPI, PostgreSQL+TimescaleDB, Redis)
 - Dockerfiles otimizados (backend + frontend build)
@@ -305,54 +308,78 @@ O desenvolvimento está organizado em 6 fases, com duração estimada baseada em
 - Variáveis de ambiente (.env.example)
 - Health checks e logs estruturados
 
-**Critério de aceite:** Ambiente sobe com `docker-compose up` e healthchecks passam.
+**Épicos cobertos:** EPIC-00 (Bootstrap), EPIC-01 (Dockerfiles + NGINX)  
+**Critério de aceite:** ✅ Ambiente sobe com `docker-compose up` e healthchecks passam.
 
 ### Fase 2 — Backend Core
 
-**Duração estimada:** 3 sprints (6 semanas)
+**Duração estimada:** 3 sprints (6 semanas) | **Concluído em:** 14/04/2026 ✅
 
-| Sprint | Entregas |
-|--------|----------|
-| S3 | Modelos de dados + Alembic migrations + seed de desenvolvimento |
-| S4 | API de ingestão de leituras + validação + persistência TimescaleDB |
-| S5 | Motor de regras (cálculos de volume, taxa variação, estimativa transbordo) + API de alertas |
+| Sprint | Entregas | Épicos | Status |
+|--------|----------|--------|--------|
+| S3 | Modelos de dados + Alembic migrations + seed de desenvolvimento | EPIC-02 | ✅ |
+| S4 | API de ingestão de leituras + validação + persistência TimescaleDB | EPIC-03 + EPIC-04 | ✅ |
+| S5 | Motor de regras + API de alertas + Worker + Clima | EPIC-05 + EPIC-06 + EPIC-07 + EPIC-11 | ✅ |
 
-**Critério de aceite:** Endpoint de ingestão persiste dados; regras de negócio calculam corretamente; alertas são disparados quando thresholds são atingidos.
+**Critério de aceite:** ✅ Endpoint de ingestão persiste dados; regras de negócio calculam corretamente; alertas são disparados quando thresholds são atingidos.
 
 ### Fase 3 — Frontend (Dashboards)
 
-**Duração estimada:** 3 sprints (6 semanas)
+**Duração estimada:** 3 sprints (6 semanas) | **Concluído em:** 28/04/2026 ✅
 
-| Sprint | Entregas |
-|--------|----------|
-| S6 | Setup React+Vite, layout base, componentes compartilhados, integração WebSocket |
-| S7 | Dashboard técnico: gráficos, mapa, indicadores, histórico |
-| S8 | Dashboard público: semáforo, informações simplificadas, inscrição alertas, PWA |
+| Sprint | Entregas | Épicos | Status |
+|--------|----------|--------|--------|
+| S6 | Setup React+Vite, layout base, componentes compartilhados, integração WebSocket | EPIC-08 | ✅ |
+| S7 | Dashboard técnico: gráficos, mapa, indicadores, histórico | EPIC-09 | ✅ |
+| S8 | Dashboard público: semáforo, informações simplificadas, inscrição alertas, PWA | EPIC-10 | ✅ |
 
-**Critério de aceite:** Dashboards funcionais com dados reais; WebSocket atualiza em tempo real; PWA instalável com push notifications.
+**Critério de aceite:** ✅ Dashboards funcionais com dados reais; WebSocket atualiza em tempo real; PWA instalável com push notifications.
 
 ### Fase 4 — Integração, Testes e Validação
 
-**Duração estimada:** 2 sprints (4 semanas)
+**Duração estimada:** 2 sprints (4 semanas) | **Concluído em:** 03/05/2026 ✅
 
-- Integração com API climática (CPTEC/INPE + OpenWeatherMap)
-- Testes de integração end-to-end
-- Testes de carga (simulação com dados sintéticos)
-- Validação das regras de negócio com cenários reais
-- Correção de bugs e ajustes de performance
-- Alertas multicanal: Push + Email operacionais
+- ✅ Integração com API climática (CPTEC/INPE + OpenWeatherMap) — EPIC-11
+- ✅ Testes de integração (pytest + httpx.AsyncClient) — EPIC-12
+- ✅ QA manual: PWA, push, email, responsividade — EPIC-12
+- ✅ Validação das regras de negócio com 30 casos de teste unitários — EPIC-05
+- ✅ Alertas multicanal: Push + Email operacionais
 
-**Critério de aceite:** Sistema operacional completo com todos os módulos integrados e testados.
+**Épicos cobertos:** EPIC-11 (Clima), EPIC-12 (Testes)  
+**Critério de aceite:** ✅ Sistema operacional completo com todos os módulos integrados e testados.
 
 ### Fase 5 — Documentação Final e Apresentação
 
-**Duração estimada:** 2 sprints (4 semanas)
+**Duração estimada:** 2 sprints (4 semanas) | **Concluído em:** 05/05/2026 ✅
 
-- Monografia / Relatório final (formatação ABNT)
-- Documentação técnica atualizada
-- Preparação do ambiente de demonstração
-- Ensaio da apresentação
-- Entrega final
+- ✅ README.md completo com variáveis, setup em 5 passos, manutenção e backup — EPIC-13
+- ✅ Revisão e atualização de todos os documentos (001–005) — EPIC-13
+- ✅ Slides de apresentação acadêmica final (15–20 min) — EPIC-13
+- ✅ Preparação do ambiente de demonstração (docker-compose up funcional)
+- ✅ Entrega final — 05/05/2026
+
+**Épicos cobertos:** EPIC-13 (Documentação Final)
+
+---
+
+### Resumo de Conclusão por Épico
+
+| EPIC | Título | Data Conclusão |
+|------|--------|---------------|
+| EPIC-00 | Bootstrap do Projeto | 22/03/2026 |
+| EPIC-01 | Dockerfiles + NGINX | 25/03/2026 |
+| EPIC-02 | Banco de Dados + Migrations | 29/03/2026 |
+| EPIC-03 | Auth (JWT + RBAC) | 02/04/2026 |
+| EPIC-04 | Ingestão IoT | 04/04/2026 |
+| EPIC-05 | Processamento + Regras RN-01..06 | 08/04/2026 |
+| EPIC-06 | Alertas + Push + Email + Worker | 12/04/2026 |
+| EPIC-07 | Dashboard APIs | 14/04/2026 |
+| EPIC-08 | Frontend Base (React/TypeScript) | 19/04/2026 |
+| EPIC-09 | Dashboard Técnico | 22/04/2026 |
+| EPIC-10 | Dashboard Público + PWA | 26/04/2026 |
+| EPIC-11 | Integração Climática | 29/04/2026 |
+| EPIC-12 | Testes e Qualidade | 03/05/2026 |
+| EPIC-13 | Documentação Final e Entrega | 05/05/2026 |
 
 ---
 

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alerta Romano</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #f5f5f3;
+  color: #1a1a18;
+  min-height: 100vh;
+  padding: clamp(8px, 2vw, 20px);
+}
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.app { width: 100%; max-width: 900px; margin: 0 auto; }
+
+/* ── HEADER ───────────────────────────────────────────────── */
+.header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 0 10px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.15);
+  margin-bottom: 14px;
+}
+.logo {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: #C0392B; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo svg { width: 20px; height: 20px; fill: #fff; }
+.header-info { flex: 1; min-width: 0; }
+.header-info h1 {
+  font-size: clamp(14px, 3.5vw, 18px);
+  font-weight: 500; color: #1a1a18;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.header-info p { font-size: clamp(10px, 2.5vw, 12px); color: #5f5e5a; margin-top: 1px; }
+.status-pill {
+  background: #eaf3de; color: #3B6D11;
+  font-size: 11px; padding: 4px 10px;
+  border-radius: 20px; font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── TABS ─────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  border-bottom: 0.5px solid rgba(0,0,0,0.15);
+  margin-bottom: 14px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  font-size: clamp(12px, 2.5vw, 13px);
+  padding: 9px clamp(10px, 3vw, 16px);
+  cursor: pointer; color: #5f5e5a;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap; flex-shrink: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab.active { color: #C0392B; border-bottom-color: #C0392B; font-weight: 500; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── CARDS ────────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  border-radius: 12px;
+  padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+}
+.card-title {
+  font-size: 11px; font-weight: 500;
+  color: #5f5e5a; text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 8px;
+}
+.section-label { font-size: 12px; font-weight: 500; color: #5f5e5a; margin: 14px 0 8px; }
+
+/* ── GRIDS (fluid) ────────────────────────────────────────── */
+.grid-2        { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; margin-bottom: 10px; }
+.alerta-grid   { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 8px; margin-bottom: 10px; }
+.station-grid  { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 8px; }
+
+/* ── BADGES & DOTS ────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; }
+.badge-green  { background: #eaf3de; color: #3B6D11; }
+.badge-red    { background: #fcebeb; color: #A32D2D; }
+.badge-yellow { background: #faeeda; color: #854F0B; }
+.dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-green  { background: #639922; }
+.dot-red    { background: #E24B4A; }
+.dot-yellow { background: #BA7517; }
+
+/* ── TOGGLE ───────────────────────────────────────────────── */
+.toggle {
+  width: 38px; height: 22px; border-radius: 11px;
+  position: relative; cursor: pointer;
+  transition: background .2s; border: none; outline: none;
+  flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+}
+.toggle.on  { background: #639922; }
+.toggle.off { background: #B4B2A9; }
+.toggle::after {
+  content: ''; width: 16px; height: 16px;
+  border-radius: 50%; background: #fff;
+  position: absolute; top: 3px; transition: left .2s;
+}
+.toggle.on::after  { left: 19px; }
+.toggle.off::after { left: 3px; }
+
+/* ── STATION ──────────────────────────────────────────────── */
+.station-item {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 7px 10px;
+  background: #f5f5f3; border-radius: 8px; gap: 8px;
+}
+.station-key { font-size: 12px; color: #5f5e5a; }
+.station-val { font-size: 13px; font-weight: 500; color: #1a1a18; white-space: nowrap; }
+
+/* ── ALERTAS ──────────────────────────────────────────────── */
+.alerta-card { padding: 10px 12px; border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.15); background: #fff; }
+.alerta-titulo { font-size: 11px; font-weight: 500; color: #5f5e5a; margin-bottom: 6px; }
+
+/* ── PREVISÃO ─────────────────────────────────────────────── */
+.weather-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; margin-bottom: 10px; }
+.weather-scroll::-webkit-scrollbar { height: 3px; }
+.weather-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 2px; }
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(60px, 1fr));
+  gap: 5px;
+  min-width: 480px;
+}
+.weather-day { text-align: center; padding: 8px 4px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,0.15); background: #fff; }
+.weather-day.today { border-color: #378ADD; background: #e6f1fb; }
+
+/* ── ABRIGOS ──────────────────────────────────────────────── */
+.shelter-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px;
+  border: 0.5px solid rgba(0,0,0,0.15);
+  border-radius: 10px; background: #fff; margin-bottom: 8px;
+}
+.shelter-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.shelter-text { flex: 1; min-width: 0; }
+.shelter-name { font-size: 13px; font-weight: 500; color: #1a1a18; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shelter-addr { font-size: 11px; color: #5f5e5a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.shelter-dist { font-size: 11px; color: #5f5e5a; white-space: nowrap; flex-shrink: 0; }
+.btn-rota {
+  font-size: 12px; padding: 8px 14px;
+  border: 0.5px solid rgba(0,0,0,.3);
+  border-radius: 6px; background: transparent;
+  color: #185FA5; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+  min-height: 36px; min-width: 56px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-rota:hover { background: #e6f1fb; }
+.btn-rota:active { background: #e6f1fb; transform: scale(.97); }
+
+/* ── TANQUES ──────────────────────────────────────────────── */
+.tank-outer {
+  border: 2px solid rgba(0,0,0,.4);
+  border-radius: 4px 4px 6px 6px;
+  overflow: hidden; position: relative;
+  background: #f5f5f3; flex-shrink: 0;
+}
+.tank-fill { position: absolute; bottom: 0; width: 100%; transition: height .5s ease, background .5s ease; }
+.tank-pct  { position: absolute; width: 100%; text-align: center; font-weight: 500; bottom: 3px; }
+
+input[type=range] { width: 100%; accent-color: #C0392B; cursor: pointer; }
+
+/* ── PISCINÃO LAYOUT ─────────────────────────────────────── */
+.piscina-wrap { display: flex; gap: 20px; align-items: flex-start; }
+.piscina-tanks { display: flex; gap: 14px; align-items: flex-end; flex-shrink: 0; }
+.tank-label { font-size: 10px; color: #5f5e5a; text-align: center; margin-bottom: 4px; }
+.piscina-info { flex: 1; min-width: 0; }
+
+/* ── BARRAS DE PRECIPITAÇÃO ──────────────────────────────── */
+.rain-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; padding-top: 8px; }
+.rain-bar  { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+
+/* ── BREAKPOINTS ─────────────────────────────────────────── */
+
+/* Tablet / Large mobile (≥600px) – columns já funcionam pelo auto-fit */
+@media (min-width: 600px) {
+  .weather-grid { min-width: unset; grid-template-columns: repeat(8, 1fr); }
+  .weather-scroll { overflow-x: visible; }
+  .tank-outer { width: 60px; height: 110px; }
+  .tank-pct   { font-size: 12px; }
+}
+
+/* Mobile small (≤599px) */
+@media (max-width: 599px) {
+  body { padding: 8px; }
+  .tab { padding: 8px 10px; }
+  .station-grid { grid-template-columns: 1fr 1fr; }
+  .shelter-dist { display: none; }
+  .tank-outer { width: 54px; height: 100px; }
+  .tank-pct   { font-size: 11px; }
+}
+
+/* Mobile extra small (≤400px) */
+@media (max-width: 400px) {
+  body { padding: 6px; }
+  .tab { font-size: 11px; padding: 8px 8px; }
+  .station-grid { grid-template-columns: 1fr; }
+  .piscina-wrap { flex-direction: column; }
+  .piscina-tanks { width: 100%; justify-content: center; margin-bottom: 16px; }
+  .tank-outer { width: 64px; height: 116px; }
+  .tank-pct   { font-size: 12px; }
+  .shelter-name { font-size: 12px; }
+  .btn-rota { font-size: 11px; padding: 7px 10px; }
+  .header-info h1 { font-size: 13px; }
+}
+
+/* Desktop wide (≥900px) */
+@media (min-width: 900px) {
+  body { padding: 24px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .alerta-grid { grid-template-columns: 1fr 1fr; }
+  .station-grid { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .tank-outer { width: 70px; height: 120px; }
+  .tank-pct   { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div class="header-info">
+      <h1>Alerta Romano</h1>
+      <p>Jardim Romano · São Paulo · <span id="relogio">--:--</span></p>
+    </div>
+    <div class="status-pill">Sistema Online</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('dashboard',this)">Dashboard</div>
+    <div class="tab" onclick="showTab('previsao',this)">Previsão</div>
+    <div class="tab" onclick="showTab('abrigos',this)">Abrigos</div>
+    <div class="tab" onclick="showTab('piscina',this)">Piscinão</div>
+  </div>
+
+  <!-- ════════════════ DASHBOARD ════════════════ -->
+  <div class="tab-content active" id="tab-dashboard">
+
+    <div class="section-label">Sensores do Piscinão Jardim Romano</div>
+    <div class="grid-2">
+
+      <div class="card">
+        <div class="card-title">Sensor 1 — Entrada Norte</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#1a1a18">Nível Piscinão</div>
+            <div style="font-size:11px;color:#5f5e5a;margin-top:2px">Bateria 100% · Última: 1min</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="toggle on" id="toggle1" onclick="toggleSensor(1)"></button>
+            <span class="badge badge-green" id="badge1"><span class="dot dot-green"></span>Online</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:clamp(20px,5vw,26px);font-weight:500;color:#1a1a18" id="s1-val">35<span style="font-size:14px">%</span></div>
+            <div style="font-size:11px;color:#5f5e5a;margin-top:2px" id="s1-m3">5.250 m³ ocupados</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;font-weight:500" id="s1-status" style="color:#639922">Seguro</div>
+            <div style="font-size:11px;color:#5f5e5a">Cap.: 15.000 m³</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Sensor 2 — Saída Sul</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#1a1a18">Nível Piscinão</div>
+            <div style="font-size:11px;color:#5f5e5a;margin-top:2px">Bateria 100% · Última: 1min</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="toggle on" id="toggle2" onclick="toggleSensor(2)"></button>
+            <span class="badge badge-green" id="badge2"><span class="dot dot-green"></span>Online</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <div style="font-size:clamp(20px,5vw,26px);font-weight:500;color:#1a1a18" id="s2-val">35<span style="font-size:14px">%</span></div>
+            <div style="font-size:11px;color:#5f5e5a;margin-top:2px" id="s2-m3">5.250 m³ ocupados</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;font-weight:500" id="s2-status" style="color:#639922">Seguro</div>
+            <div style="font-size:11px;color:#5f5e5a">Cap.: 15.000 m³</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Barra nível médio -->
+    <div style="background:#f5f5f3;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex-shrink:0">
+        <div style="font-size:11px;color:#5f5e5a">Nível médio (S1+S2)</div>
+        <div style="font-size:clamp(16px,4vw,20px);font-weight:500;color:#1a1a18" id="media-val">35%</div>
+      </div>
+      <div style="flex:1;min-width:80px">
+        <div style="height:10px;background:#fff;border-radius:5px;overflow:hidden;border:0.5px solid rgba(0,0,0,.15)">
+          <div id="barra-media" style="height:100%;width:35%;background:#378ADD;border-radius:5px;transition:width .5s,background .5s"></div>
+        </div>
+      </div>
+      <span class="badge badge-green" id="media-badge" style="flex-shrink:0">
+        <span class="dot dot-green" id="media-dot"></span>&nbsp;<span id="media-txt">Nível seguro</span>
+      </span>
+    </div>
+
+    <div class="section-label">Estação meteorológica local</div>
+    <div class="card" style="margin-bottom:10px">
+      <div class="station-grid">
+        <div class="station-item"><span class="station-key">Temperatura</span><span class="station-val">27,4 °C</span></div>
+        <div class="station-item"><span class="station-key">Umidade relativa</span><span class="station-val">78%</span></div>
+        <div class="station-item"><span class="station-key">Precipitação</span><span class="station-val">12,4 mm</span></div>
+        <div class="station-item"><span class="station-key">Velocidade vento</span><span class="station-val">18 km/h</span></div>
+        <div class="station-item"><span class="station-key">Direção vento</span><span class="station-val">SE → NO</span></div>
+        <div class="station-item"><span class="station-key">Pressão atmosf.</span><span class="station-val">1.012 hPa</span></div>
+        <div class="station-item"><span class="station-key">Qualidade do ar</span><span class="station-val" style="color:#639922">Boa · 42</span></div>
+        <div class="station-item"><span class="station-key">Visibilidade</span><span class="station-val">8 km</span></div>
+      </div>
+    </div>
+
+    <div class="section-label">Alertas externos</div>
+    <div class="alerta-grid">
+      <div class="alerta-card">
+        <div class="alerta-titulo">Previsão chuva — API Ext.</div>
+        <div style="font-size:13px;font-weight:500;color:#185FA5">Chuva fraca à tarde</div>
+        <div style="font-size:11px;color:#5f5e5a;margin-top:4px">Acumulado previsto: 18mm</div>
+      </div>
+      <div class="alerta-card" style="border-color:#97C459">
+        <div class="alerta-titulo">Situação Defesa Civil</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+          <span style="width:12px;height:12px;background:#639922;border-radius:50%;display:inline-block;flex-shrink:0"></span>
+          <div style="font-size:13px;font-weight:500;color:#3B6D11">Verde — Normal</div>
+        </div>
+        <div style="font-size:11px;color:#5f5e5a;margin-top:4px">Sem risco iminente</div>
+      </div>
+      <div class="alerta-card">
+        <div class="alerta-titulo">Alerta Defesa Civil — API Ext.</div>
+        <div style="font-size:13px;font-weight:500;color:#854F0B">Atenção: chuvas intensas</div>
+        <div style="font-size:11px;color:#5f5e5a;margin-top:4px">Válido até 21h00 de hoje</div>
+      </div>
+      <div class="alerta-card" style="border-color:#97C459">
+        <div class="alerta-titulo">Romano — Regra nível</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+          <span style="width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0;background:#639922" id="dot-regra"></span>
+          <div style="font-size:13px;font-weight:500;color:#3B6D11" id="txt-regra">Verde — Operacional</div>
+        </div>
+        <div style="font-size:11px;color:#5f5e5a;margin-top:4px" id="sub-regra">Piscinão abaixo de 40%</div>
+      </div>
+    </div>
+
+  </div><!-- /dashboard -->
+
+  <!-- ════════════════ PREVISÃO ════════════════ -->
+  <div class="tab-content" id="tab-previsao">
+
+    <div class="section-label" id="label-hoje">Hoje — Jardim Romano, São Paulo</div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:clamp(10px,3vw,18px);flex-wrap:wrap">
+        <div style="font-size:clamp(32px,8vw,44px);line-height:1;flex-shrink:0">⛅</div>
+        <div style="flex:1;min-width:140px">
+          <div style="font-size:clamp(22px,5vw,28px);font-weight:500;color:#1a1a18">27°C</div>
+          <div style="font-size:clamp(11px,2.5vw,13px);color:#5f5e5a;margin-top:4px">Parcialmente nublado · Umidade 78% · Vento 18 km/h SE</div>
+          <div style="font-size:12px;color:#185FA5;margin-top:4px">Chuva esperada à tarde — 18mm acumulado</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11px;color:#5f5e5a">Máx / Mín</div>
+          <div style="font-size:clamp(14px,4vw,18px);font-weight:500;color:#1a1a18">30° / 21°</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" id="label-proximos">Próximos 7 dias</div>
+    <div class="weather-scroll">
+      <div class="weather-grid" id="weather-grid">
+        <!-- preenchido dinamicamente pelo JS -->
+      </div>
+    </div>
+
+    <div class="section-label">Precipitação prevista (mm)</div>
+    <div class="card">
+      <div class="rain-bars" id="rain-bars">
+        <!-- preenchido dinamicamente pelo JS -->
+      </div>
+    </div>
+
+  </div><!-- /previsao -->
+
+  <!-- ════════════════ ABRIGOS ════════════════ -->
+  <div class="tab-content" id="tab-abrigos">
+
+    <div class="section-label">5 locais de abrigo seguros — Jardim Romano</div>
+
+    <div class="shelter-item">
+      <div class="shelter-icon" style="background:#e6f1fb">🏫</div>
+      <div class="shelter-text">
+        <div class="shelter-name">EE Salvador Romano</div>
+        <div class="shelter-addr">Av. Tomás Lopes de Camargo, 422 — Escola estadual</div>
+      </div>
+      <span class="shelter-dist">~0,4 km</span>
+      <button class="btn-rota" onclick="abrirRota('EE Salvador Romano, Av. Tomás Lopes de Camargo 422, Jardim Romano, São Paulo')">Rota</button>
+    </div>
+
+    <div class="shelter-item">
+      <div class="shelter-icon" style="background:#e6f1fb">🏫</div>
+      <div class="shelter-text">
+        <div class="shelter-name">EE Prof. José Bonifácio</div>
+        <div class="shelter-addr">R. André Furtado de Mendonça, 561 — Escola estadual</div>
+      </div>
+      <span class="shelter-dist">~0,5 km</span>
+      <button class="btn-rota" onclick="abrirRota('EE Professor José Bonifácio, Rua André Furtado de Mendonça 561, Jardim Romano, São Paulo')">Rota</button>
+    </div>
+
+    <div class="shelter-item">
+      <div class="shelter-icon" style="background:#eaf3de">🏥</div>
+      <div class="shelter-text">
+        <div class="shelter-name">UBS Jardim Romano</div>
+        <div class="shelter-addr">R. Capachós, 199 — Unidade básica de saúde</div>
+      </div>
+      <span class="shelter-dist">~0,7 km</span>
+      <button class="btn-rota" onclick="abrirRota('UBS Jardim Romano, Rua Capachós 199, Jardim Romano, São Paulo')">Rota</button>
+    </div>
+
+    <div class="shelter-item">
+      <div class="shelter-icon" style="background:#faeeda">⛪</div>
+      <div class="shelter-text">
+        <div class="shelter-name">Comunidade N. Sra. Aparecida</div>
+        <div class="shelter-addr">Praça da Igreja, 90 — Igreja / comunidade</div>
+      </div>
+      <span class="shelter-dist">~0,5 km</span>
+      <button class="btn-rota" onclick="abrirRota('Igreja Nossa Senhora Aparecida, Praça da Igreja 90, Jardim Romano, São Paulo')">Rota</button>
+    </div>
+
+    <div class="shelter-item">
+      <div class="shelter-icon" style="background:#faeeda">⛪</div>
+      <div class="shelter-text">
+        <div class="shelter-name">1ª Igreja Batista Jardim Romano</div>
+        <div class="shelter-addr">Av. Tomás Lopes de Camargo, 75 — Igreja</div>
+      </div>
+      <span class="shelter-dist">~0,6 km</span>
+      <button class="btn-rota" onclick="abrirRota('Primeira Igreja Batista Jardim Romano, Av. Tomás Lopes de Camargo 75, Jardim Romano, São Paulo')">Rota</button>
+    </div>
+
+    <div style="margin-top:4px;padding:12px 14px;background:#f5f5f3;border-radius:10px;font-size:clamp(11px,2.5vw,13px);color:#5f5e5a;line-height:2">
+      Emergências:
+      <strong style="color:#1a1a18">Defesa Civil 199</strong> ·
+      <strong style="color:#1a1a18">SAMU 192</strong> ·
+      <strong style="color:#1a1a18">Bombeiros 193</strong>
+    </div>
+
+  </div><!-- /abrigos -->
+
+  <!-- ════════════════ PISCINÃO ════════════════ -->
+  <div class="tab-content" id="tab-piscina">
+
+    <div class="section-label">Piscinão Jardim Romano — Capacidade: 15.000 m³</div>
+
+    <div class="card" style="margin-bottom:10px">
+      <div class="piscina-wrap">
+
+        <div class="piscina-tanks">
+          <div>
+            <div class="tank-label">S1</div>
+            <div class="tank-outer">
+              <div class="tank-fill" id="tank1-fill" style="height:35%;background:#378ADD"></div>
+              <div class="tank-pct"  id="tank1-pct"  style="color:#0C447C">35%</div>
+            </div>
+          </div>
+          <div>
+            <div class="tank-label">S2</div>
+            <div class="tank-outer">
+              <div class="tank-fill" id="tank2-fill" style="height:35%;background:#378ADD"></div>
+              <div class="tank-pct"  id="tank2-pct"  style="color:#0C447C">35%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="piscina-info">
+          <div style="font-size:11px;color:#5f5e5a">Volume atual (média S1+S2)</div>
+          <div style="font-size:clamp(22px,6vw,28px);font-weight:500;color:#1a1a18;margin:2px 0" id="piscina-pct-big">35%</div>
+          <div style="font-size:13px;color:#5f5e5a" id="piscina-m3">5.250 m³ de 15.000 m³</div>
+          <span class="badge badge-green" id="piscina-badge" style="margin-top:10px;display:inline-flex">
+            <span class="dot dot-green" id="piscina-dot"></span>&nbsp;<span id="piscina-txt">Nível seguro</span>
+          </span>
+          <div style="margin-top:14px">
+            <div style="font-size:12px;color:#5f5e5a;margin-bottom:4px">Simule o nível — Sensor 1</div>
+            <input type="range" min="0" max="100" value="35" step="1" id="slider1" oninput="simularNivel(1,this.value)">
+          </div>
+          <div style="margin-top:10px">
+            <div style="font-size:12px;color:#5f5e5a;margin-bottom:4px">Simule o nível — Sensor 2</div>
+            <input type="range" min="0" max="100" value="35" step="1" id="slider2" oninput="simularNivel(2,this.value)">
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#5f5e5a;margin-top:2px">
+            <span>0%</span><span>40%</span><span>70%</span><span>100%</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-title">Legenda de nível</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="width:14px;height:14px;border-radius:50%;background:#639922;display:inline-block;flex-shrink:0;margin-top:2px"></span>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#3B6D11">Verde — 0% a 40% (0 a 6.000 m³)</div>
+            <div style="font-size:11px;color:#5f5e5a">Nível seguro, operação normal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="width:14px;height:14px;border-radius:50%;background:#BA7517;display:inline-block;flex-shrink:0;margin-top:2px"></span>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#854F0B">Amarelo — 40% a 70% (6.000 a 10.500 m³)</div>
+            <div style="font-size:11px;color:#5f5e5a">Atenção, monitoramento intensivo</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="width:14px;height:14px;border-radius:50%;background:#E24B4A;display:inline-block;flex-shrink:0;margin-top:2px"></span>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#A32D2D">Vermelho — 70% a 100% (10.500 a 15.000 m³)</div>
+            <div style="font-size:11px;color:#5f5e5a">Alerta crítico — acionar Defesa Civil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Histórico — últimas 8h</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:60px;padding-top:6px">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:18px;background:#5DCAA5;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">11h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:20px;background:#5DCAA5;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">12h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:23px;background:#5DCAA5;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">13h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:26px;background:#5DCAA5;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">14h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:28px;background:#378ADD;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">15h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:30px;background:#378ADD;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">16h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:32px;background:#378ADD;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">17h</div></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;height:35px;background:#378ADD;border-radius:2px 2px 0 0"></div><div style="font-size:9px;color:#5f5e5a">18h</div></div>
+      </div>
+    </div>
+
+  </div><!-- /piscina -->
+
+</div><!-- .app -->
+
+<script>
+var niveisS = [35, 35];
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function toggleSensor(n) {
+  var btn   = document.getElementById('toggle' + n);
+  var badge = document.getElementById('badge'  + n);
+  var isOn  = btn.classList.contains('on');
+  btn.classList.toggle('on',  !isOn);
+  btn.classList.toggle('off',  isOn);
+  badge.className = isOn ? 'badge badge-red' : 'badge badge-green';
+  badge.innerHTML = isOn
+    ? '<span class="dot dot-red"></span>Offline'
+    : '<span class="dot dot-green"></span>Online';
+}
+
+function corNivel(v) {
+  if (v <= 40) return { bg:'#378ADD', txt:'#0C447C', status:'Seguro',   sColor:'#639922', bc:'badge-green',  dc:'dot-green',  lbl:'Nível seguro'   };
+  if (v <= 70) return { bg:'#EF9F27', txt:'#633806', status:'Atenção',  sColor:'#BA7517', bc:'badge-yellow', dc:'dot-yellow', lbl:'Atenção'        };
+  return           { bg:'#E24B4A', txt:'#501313', status:'Crítico!', sColor:'#A32D2D', bc:'badge-red',    dc:'dot-red',    lbl:'Nível crítico!' };
+}
+
+function atualizarDash() {
+  [1,2].forEach(function(n){
+    var v = niveisS[n-1], c = corNivel(v), m3 = Math.round(v/100*15000);
+    var ve = document.getElementById('s'+n+'-val');
+    if (ve) { ve.innerHTML = v+'<span style="font-size:14px">%</span>'; ve.style.color = c.sColor; }
+    var se = document.getElementById('s'+n+'-status');
+    if (se) { se.textContent = c.status; se.style.color = c.sColor; }
+    var me = document.getElementById('s'+n+'-m3');
+    if (me) me.textContent = m3.toLocaleString('pt-BR')+' m³ ocupados';
+  });
+  var media = Math.round((niveisS[0]+niveisS[1])/2), c = corNivel(media);
+  var g = function(id){ return document.getElementById(id); };
+  if(g('media-val'))   g('media-val').textContent  = media+'%';
+  if(g('barra-media')) { g('barra-media').style.width=media+'%'; g('barra-media').style.background=c.bg; }
+  if(g('media-badge')) g('media-badge').className   = 'badge '+c.bc;
+  if(g('media-dot'))   g('media-dot').className     = 'dot '+c.dc;
+  if(g('media-txt'))   g('media-txt').textContent   = c.lbl;
+  if(media<=40){
+    if(g('dot-regra')) g('dot-regra').style.background='#639922';
+    if(g('txt-regra')){ g('txt-regra').textContent='Verde — Operacional'; g('txt-regra').style.color='#3B6D11'; }
+    if(g('sub-regra')) g('sub-regra').textContent='Piscinão abaixo de 40%';
+  } else if(media<=70){
+    if(g('dot-regra')) g('dot-regra').style.background='#BA7517';
+    if(g('txt-regra')){ g('txt-regra').textContent='Amarelo — Atenção'; g('txt-regra').style.color='#854F0B'; }
+    if(g('sub-regra')) g('sub-regra').textContent='Piscinão entre 40% e 70%';
+  } else {
+    if(g('dot-regra')) g('dot-regra').style.background='#E24B4A';
+    if(g('txt-regra')){ g('txt-regra').textContent='Vermelho — Alerta crítico!'; g('txt-regra').style.color='#A32D2D'; }
+    if(g('sub-regra')) g('sub-regra').textContent='Piscinão acima de 70%!';
+  }
+}
+
+function simularNivel(n, val) {
+  val = parseInt(val); niveisS[n-1] = val;
+  var c = corNivel(val);
+  var tf = document.getElementById('tank'+n+'-fill'), tp = document.getElementById('tank'+n+'-pct');
+  if(tf){ tf.style.height=val+'%'; tf.style.background=c.bg; }
+  if(tp){ tp.textContent=val+'%'; tp.style.color=c.txt; }
+  var media=Math.round((niveisS[0]+niveisS[1])/2), cm=corNivel(media), m3=Math.round(media/100*15000);
+  var g = function(id){ return document.getElementById(id); };
+  if(g('piscina-pct-big')) g('piscina-pct-big').textContent = media+'%';
+  if(g('piscina-m3'))      g('piscina-m3').textContent = m3.toLocaleString('pt-BR')+' m³ de 15.000 m³';
+  if(g('piscina-badge'))   g('piscina-badge').className = 'badge '+cm.bc;
+  if(g('piscina-dot'))     g('piscina-dot').className   = 'dot '+cm.dc;
+  if(g('piscina-txt'))     g('piscina-txt').textContent = cm.lbl;
+  atualizarDash();
+}
+
+function abrirRota(addr) {
+  window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(addr),'_blank');
+}
+
+function tick() {
+  var now=new Date(), el=document.getElementById('relogio');
+  if(el) el.textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
+tick(); setInterval(tick, 30000);
+atualizarDash();
+
+/* ── PREVISÃO COM DATAS DINÂMICAS ──────────────────────────── */
+(function renderPrevisao() {
+  var DIAS_PT  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+  /* Dados simulados para 8 dias (hoje + 7). Num app real viriam de uma API. */
+  var previsoes = [
+    { icone:'⛅', max:30, min:21, mm:18,  mmColor:'#185FA5' },
+    { icone:'🌧', max:28, min:20, mm:32,  mmColor:'#185FA5' },
+    { icone:'⛈', max:26, min:19, mm:45,  mmColor:'#E24B4A' },
+    { icone:'🌦', max:27, min:20, mm:20,  mmColor:'#185FA5' },
+    { icone:'⛅', max:29, min:21, mm:8,   mmColor:'#185FA5' },
+    { icone:'☀',  max:31, min:22, mm:0,   mmColor:'#9a9894' },
+    { icone:'☀',  max:32, min:22, mm:0,   mmColor:'#9a9894' },
+    { icone:'🌦', max:29, min:21, mm:14,  mmColor:'#185FA5' }
+  ];
+
+  var hoje = new Date();
+
+  /* ── Label "Hoje, DD de mês" ── */
+  var lh = document.getElementById('label-hoje');
+  if (lh) {
+    var dd = hoje.getDate();
+    var mm = MESES_PT[hoje.getMonth()];
+    var aa = hoje.getFullYear();
+    lh.textContent = 'Hoje, ' + dd + ' de ' + mm + ' de ' + aa + ' — Jardim Romano, SP';
+  }
+
+  /* ── Label "Próximos 7 dias (DD/MM a DD/MM)" ── */
+  var lp = document.getElementById('label-proximos');
+  if (lp) {
+    var d1 = new Date(hoje); d1.setDate(d1.getDate() + 1);
+    var d7 = new Date(hoje); d7.setDate(d7.getDate() + 7);
+    var fmt = function(d){ return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); };
+    lp.textContent = 'Próximos 7 dias (' + fmt(d1) + ' a ' + fmt(d7) + ')';
+  }
+
+  /* ── Cards dos dias ── */
+  var grid = document.getElementById('weather-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    for (var i = 0; i < 8; i++) {
+      var data = new Date(hoje);
+      data.setDate(data.getDate() + i);
+      var p = previsoes[i];
+      var isHoje = (i === 0);
+
+      /* Rótulo do dia */
+      var diaNome = isHoje ? 'Hoje' : DIAS_PT[data.getDay()];
+      var diaNum  = String(data.getDate()).padStart(2,'0') + '/' + String(data.getMonth()+1).padStart(2,'0');
+
+      /* Cor da chuva */
+      var mmTxt = p.mm > 0 ? p.mm+'mm' : '0mm';
+
+      var cls = 'weather-day' + (isHoje ? ' today' : '');
+      var labelColor = isHoje ? '#0C447C' : '#5f5e5a';
+      var tempColor  = isHoje ? '#0C447C' : '#1a1a18';
+
+      grid.innerHTML +=
+        '<div class="'+cls+'">' +
+          '<div style="font-size:10px;color:'+labelColor+';font-weight:'+(isHoje?'600':'400')+'">'+diaNome+'</div>' +
+          '<div style="font-size:9px;color:'+labelColor+';margin-top:1px">'+diaNum+'</div>' +
+          '<span style="font-size:18px;display:block;margin:4px 0">'+p.icone+'</span>' +
+          '<div style="font-size:11px;font-weight:500;color:'+tempColor+'">'+p.max+'/'+p.min+'°</div>' +
+          '<div style="font-size:10px;color:'+p.mmColor+'">'+mmTxt+'</div>' +
+        '</div>';
+    }
+  }
+
+  /* ── Barras de precipitação ── */
+  var bars = document.getElementById('rain-bars');
+  if (bars) {
+    bars.innerHTML = '';
+    var maxMm = Math.max.apply(null, previsoes.map(function(p){ return p.mm; }));
+    if (maxMm === 0) maxMm = 1; /* evita divisão por zero */
+    var barMaxPx = 66;
+
+    for (var j = 0; j < 8; j++) {
+      var data2 = new Date(hoje); data2.setDate(data2.getDate() + j);
+      var p2    = previsoes[j];
+      var isHoje2 = (j === 0);
+      var rotulo = isHoje2 ? 'Hoje' : DIAS_PT[data2.getDay()];
+      var altPx  = p2.mm > 0 ? Math.max(2, Math.round((p2.mm / maxMm) * barMaxPx)) : 2;
+      var barBg  = p2.mm === 0 ? '#eaf3de'
+                 : p2.mm >= 40 ? '#E24B4A'
+                 : p2.mm >= 20 ? '#378ADD'
+                 : '#5DCAA5';
+      var barBorder = p2.mm === 0 ? 'border:0.5px solid #97C459;' : '';
+      var numColor  = p2.mm >= 40 ? '#E24B4A' : p2.mm > 0 ? '#185FA5' : '#9a9894';
+
+      bars.innerHTML +=
+        '<div class="rain-bar">' +
+          '<div style="font-size:10px;color:'+numColor+';font-weight:500">'+(p2.mm > 0 ? p2.mm : '0')+'</div>' +
+          '<div style="width:100%;background:'+barBg+';border-radius:2px 2px 0 0;height:'+altPx+'px;'+barBorder+'"></div>' +
+          '<div style="font-size:9px;color:#5f5e5a">'+rotulo+'</div>' +
+        '</div>';
+    }
+  }
+})();
+</script>
+</body>
+</html>

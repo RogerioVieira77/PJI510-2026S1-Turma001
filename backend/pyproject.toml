@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "piscinao-monitor-backend"
+version = "0.1.0"
+description = "Backend do Sistema de Monitoramento de Piscinões"
+requires-python = ">=3.12"
+
+dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn[standard]==0.34.2",
+    "pydantic[email]==2.11.4",
+    "pydantic-settings==2.9.1",
+    "sqlalchemy[asyncio]==2.0.40",
+    "asyncpg==0.30.0",
+    "alembic==1.15.2",
+    "redis[hiredis]==5.2.1",
+    "arq==0.26.1",
+    "bcrypt==4.3.0",
+    "python-jose[cryptography]==3.4.0",
+    "pywebpush==2.0.1",
+    "aiosmtplib==3.0.2",
+    "httpx==0.28.1",
+    "apscheduler==3.11.0",
+    "python-multipart==0.0.20",
+    "structlog==25.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "pytest-asyncio==0.26.0",
+    "pytest-cov==6.1.0",
+    "httpx==0.28.1",
+    "ruff==0.11.9",
+    "mypy==1.15.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true

@@ -1,0 +1,29 @@
+{
+  "name": "PiscinãoMonitor",
+  "short_name": "PiscinãoMon",
+  "description": "Monitoramento de reservatórios de detenção de cheias de São Paulo",
+  "lang": "pt-BR",
+  "theme_color": "#1e40af",
+  "background_color": "#0f172a",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
