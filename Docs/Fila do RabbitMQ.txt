@@ -1,0 +1,10 @@
+
+A URL para consumo da fila sera a seguinte: 
+https://sensores-pji510.unicomunitaria.com.br/health
+
+E os dados dos sensores serão os seguintes:
+"sensor_id": Nome do Sensor
+"tipo_sensor": Tipo do Sensor
+"valor": Valor Numérico da Medição
+"unidade": Unidade de Medida
+"status": Status do Sensor
