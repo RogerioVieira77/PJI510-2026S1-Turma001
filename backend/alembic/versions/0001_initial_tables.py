@@ -16,12 +16,6 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # ── Enums ────────────────────────────────────────────────────────────────
-    op.execute("CREATE TYPE role_enum AS ENUM ('admin', 'gestor', 'operador')")
-    op.execute("CREATE TYPE tipo_sensor_enum AS ENUM ('nivel', 'vazao', 'chuva')")
-    op.execute("CREATE TYPE nivel_alerta_enum AS ENUM ('atencao', 'alerta', 'emergencia')")
-    op.execute("CREATE TYPE status_alerta_enum AS ENUM ('ativo', 'resolvido')")
-
     # ── usuario ──────────────────────────────────────────────────────────────
     op.create_table(
         "usuario",

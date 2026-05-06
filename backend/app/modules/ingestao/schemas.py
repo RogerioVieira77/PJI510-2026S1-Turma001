@@ -1,4 +1,4 @@
-﻿"""Ingestao schemas — TASK-40."""
+"""Ingestao schemas — TASK-40."""
 from __future__ import annotations
 
 import enum

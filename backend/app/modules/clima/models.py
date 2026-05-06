@@ -1,4 +1,4 @@
-﻿"""Clima models."""
+"""Clima models."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -20,7 +20,7 @@ class LeituraClimatica(Base):
         ForeignKey("reservatorio.id", ondelete="CASCADE"), nullable=False
     )
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, index=True
+        DateTime(timezone=True), primary_key=True, nullable=False
     )
     temperatura_c: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
     umidade_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)

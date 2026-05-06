@@ -1,4 +1,4 @@
-﻿"""Alertas models."""
+"""Alertas models."""
 from __future__ import annotations
 
 import enum

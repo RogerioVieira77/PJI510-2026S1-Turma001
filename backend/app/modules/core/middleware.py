@@ -1,1 +1,1 @@
-﻿"""Custom middlewares."""
+"""Custom middlewares."""

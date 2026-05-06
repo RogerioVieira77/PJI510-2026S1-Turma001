@@ -1,1 +1,1 @@
-﻿"""Processamento schemas."""
+"""Processamento schemas."""

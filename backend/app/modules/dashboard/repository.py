@@ -1,4 +1,4 @@
-﻿"""Dashboard repository — EPIC-07."""
+"""Dashboard repository — EPIC-07."""
 from __future__ import annotations
 
 from datetime import datetime

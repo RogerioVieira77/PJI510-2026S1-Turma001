@@ -1,4 +1,4 @@
-﻿"""Ingestao service — TASK-41."""
+"""Ingestao service — TASK-41."""
 from __future__ import annotations
 
 import redis.asyncio as aioredis

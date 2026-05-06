@@ -1,1 +1,1 @@
-﻿"""Custom exceptions."""
+"""Custom exceptions."""

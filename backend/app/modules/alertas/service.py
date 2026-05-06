@@ -1,4 +1,4 @@
-﻿"""Alertas service — TASK-61."""
+"""Alertas service — TASK-61."""
 from __future__ import annotations
 
 from datetime import timezone

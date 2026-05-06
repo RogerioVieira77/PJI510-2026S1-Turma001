@@ -1,1 +1,1 @@
-﻿"""Dashboard models."""
+"""Dashboard models."""

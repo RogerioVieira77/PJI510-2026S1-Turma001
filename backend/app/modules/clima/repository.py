@@ -1,4 +1,4 @@
-﻿"""ClimaRepository — TASK-111."""
+"""ClimaRepository — TASK-111."""
 from __future__ import annotations
 
 from datetime import datetime, timezone

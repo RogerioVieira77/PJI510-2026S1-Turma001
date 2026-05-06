@@ -1,4 +1,4 @@
-﻿"""Ingestao repository — TASK-41."""
+"""Ingestao repository — TASK-41."""
 from __future__ import annotations
 
 from sqlalchemy import insert

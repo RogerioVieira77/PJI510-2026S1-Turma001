@@ -1,4 +1,4 @@
-﻿"""Clima schemas — TASK-111."""
+"""Clima schemas — TASK-111."""
 from __future__ import annotations
 
 from datetime import datetime

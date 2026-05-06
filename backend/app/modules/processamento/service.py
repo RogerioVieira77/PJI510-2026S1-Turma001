@@ -1,4 +1,4 @@
-﻿"""Processamento service — TASK-51."""
+"""Processamento service — TASK-51."""
 from __future__ import annotations
 
 import asyncio

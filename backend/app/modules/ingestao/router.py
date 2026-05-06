@@ -1,4 +1,4 @@
-﻿"""Ingestao router — TASK-42."""
+"""Ingestao router — TASK-42."""
 from __future__ import annotations
 
 from typing import Annotated

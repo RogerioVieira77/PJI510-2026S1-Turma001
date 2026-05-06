@@ -1,4 +1,4 @@
-﻿"""Alertas repository — TASK-61."""
+"""Alertas repository — TASK-61."""
 from __future__ import annotations
 
 from datetime import datetime

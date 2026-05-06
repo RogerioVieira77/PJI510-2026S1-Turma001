@@ -1,4 +1,4 @@
-﻿"""Alertas router — TASK-63, TASK-64, TASK-65."""
+"""Alertas router — TASK-63, TASK-64, TASK-65."""
 from __future__ import annotations
 
 import base64
@@ -133,7 +133,7 @@ async def subscribe_push(
     return {"id": sub.id, "endpoint": sub.endpoint}
 
 
-@router.delete("/subscribe/push", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/subscribe/push", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def unsubscribe_push(
     body: PushSubscribeRequest,
     _: CurrentUser,

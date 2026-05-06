@@ -1,4 +1,4 @@
-﻿"""pytest fixtures — EPIC-12.
+"""pytest fixtures — EPIC-12.
 
 Fornece:
   - ``app``     — instância FastAPI com lifespan desabilitado

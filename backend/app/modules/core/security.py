@@ -1,1 +1,1 @@
-﻿"""JWT helpers."""
+"""JWT helpers."""

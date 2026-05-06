@@ -1,4 +1,4 @@
-﻿"""ClimaService — TASK-111."""
+"""ClimaService — TASK-111."""
 from __future__ import annotations
 
 from sqlalchemy import select

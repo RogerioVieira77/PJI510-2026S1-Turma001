@@ -1,4 +1,4 @@
-﻿"""Hydrology calculation policies (RN-01 – RN-06)."""
+"""Hydrology calculation policies (RN-01 – RN-06)."""
 from __future__ import annotations
 
 from datetime import datetime

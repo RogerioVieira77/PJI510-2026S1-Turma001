@@ -1,4 +1,4 @@
-﻿"""HTTP clients para dados clim\u00e1ticos \u2014 TASK-110.
+"""HTTP clients para dados clim\u00e1ticos \u2014 TASK-110.
 
 Hierarquia de fallback:
     CPTECClient  \u2192  OpenWeatherClient  \u2192  ClimaServiceException

@@ -1,1 +1,1 @@
-﻿"""Processamento models."""
+"""Processamento models."""

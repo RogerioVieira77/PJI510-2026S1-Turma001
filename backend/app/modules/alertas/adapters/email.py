@@ -1,4 +1,4 @@
-﻿"""Email (aiosmtplib) adapter — TASK-64."""
+"""Email (aiosmtplib) adapter — TASK-64."""
 from __future__ import annotations
 
 from email.mime.multipart import MIMEMultipart

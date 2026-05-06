@@ -1,4 +1,4 @@
-﻿"""Dashboard router — EPIC-07 (TASK-70/71/72/73)."""
+"""Dashboard router — EPIC-07 (TASK-70/71/72/73)."""
 from __future__ import annotations
 
 import json

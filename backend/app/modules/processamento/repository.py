@@ -1,1 +1,1 @@
-﻿"""Processamento repository."""
+"""Processamento repository."""

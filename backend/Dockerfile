@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml .
-RUN pip install --no-cache-dir --prefix=/install .[dev]
+RUN pip install --no-cache-dir --upgrade setuptools pip && \
+    pip install --no-cache-dir --prefix=/install .[dev]
 
 # ── Stage 2: runtime ────────────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime

@@ -24,7 +24,7 @@ def upgrade() -> None:
         "leitura_sensor",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
         sa.Column("sensor_id", sa.Integer, sa.ForeignKey("sensor.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("timestamp", sa.DateTime(timezone=True), primary_key=True, nullable=False),
         sa.Column("valor", sa.Numeric(10, 3), nullable=False),
         sa.Column("nivel_percentual", sa.Numeric(5, 2), nullable=True),
     )
@@ -40,7 +40,7 @@ def upgrade() -> None:
         "leitura_climatica",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
         sa.Column("reservatorio_id", sa.Integer, sa.ForeignKey("reservatorio.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("timestamp", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("timestamp", sa.DateTime(timezone=True), primary_key=True, nullable=False),
         sa.Column("temperatura_c", sa.Numeric(5, 2), nullable=True),
         sa.Column("umidade_pct", sa.Numeric(5, 2), nullable=True),
         sa.Column("precipitacao_mm", sa.Numeric(7, 2), nullable=True),

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 from logging.config import fileConfig
@@ -40,17 +40,20 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def do_run_migrations(connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+
+
 async def run_async_migrations() -> None:
     engine = create_async_engine(get_url(), echo=False)
     async with engine.connect() as conn:
-        await conn.run_sync(
-            lambda sync_conn: context.configure(
-                connection=sync_conn,
-                target_metadata=target_metadata,
-                compare_type=True,
-            )
-        )
-        await conn.run_sync(lambda _: context.run_migrations())
+        await conn.run_sync(do_run_migrations)
     await engine.dispose()
 
 

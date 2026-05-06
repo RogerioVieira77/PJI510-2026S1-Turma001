@@ -1,4 +1,4 @@
-﻿"""Ingestao models."""
+"""Ingestao models."""
 from __future__ import annotations
 
 import enum
@@ -74,7 +74,7 @@ class LeituraSensor(Base):
         ForeignKey("sensor.id", ondelete="CASCADE"), nullable=False
     )
     timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, index=True
+        DateTime(timezone=True), primary_key=True, nullable=False
     )
     valor: Mapped[Decimal] = mapped_column(Numeric(10, 3), nullable=False)
     nivel_percentual: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)

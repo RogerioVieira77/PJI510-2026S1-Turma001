@@ -1,4 +1,4 @@
-﻿"""Auth repository."""
+"""Auth repository."""
 from __future__ import annotations
 
 from sqlalchemy import select

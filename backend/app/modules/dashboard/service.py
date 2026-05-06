@@ -1,4 +1,4 @@
-﻿"""Dashboard service — EPIC-07."""
+"""Dashboard service — EPIC-07."""
 from __future__ import annotations
 
 import json

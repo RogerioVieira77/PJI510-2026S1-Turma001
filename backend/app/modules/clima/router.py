@@ -1,4 +1,4 @@
-﻿"""Clima router \u2014 TASK-111.
+"""Clima router \u2014 TASK-111.
 
 Montado em /api/v1/reservatorios, expondo GET /{id}/clima.
 """

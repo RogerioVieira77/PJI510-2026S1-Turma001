@@ -1,4 +1,4 @@
-﻿"""VAPID/Web Push adapter — TASK-63."""
+"""VAPID/Web Push adapter — TASK-63."""
 from __future__ import annotations
 
 import json

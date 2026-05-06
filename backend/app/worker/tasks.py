@@ -1,4 +1,4 @@
-﻿"""ARQ background tasks — TASK-62."""
+"""ARQ background tasks — TASK-62."""
 from __future__ import annotations
 
 import json

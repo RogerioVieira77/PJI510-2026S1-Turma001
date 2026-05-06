@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
 import { useNavigate } from 'react-router-dom'
@@ -21,12 +21,13 @@ export default function TechDashboard() {
       return res.data
     },
     staleTime: 60_000,
-    onSuccess: (data) => {
-      if (data.length > 0 && selectedId === null) {
-        setSelectedId(data[0].id)
-      }
-    },
   })
+
+  useEffect(() => {
+    if (reservatorios.length > 0 && selectedId === null) {
+      setSelectedId(reservatorios[0].id)
+    }
+  }, [reservatorios, selectedId])
 
   function handleLogout() {
     clearAuth()
