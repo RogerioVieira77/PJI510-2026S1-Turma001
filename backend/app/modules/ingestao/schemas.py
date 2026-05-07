@@ -22,6 +22,9 @@ class UnidadeEnum(str, enum.Enum):
     mm_h = "mm/h"
     kPa = "kPa"
     celsius = "\u00b0C"          # °C
+    hPa = "hPa"
+    km_h = "km/h"
+    graus = "graus"
 
 
 class LeituraCreate(BaseModel):

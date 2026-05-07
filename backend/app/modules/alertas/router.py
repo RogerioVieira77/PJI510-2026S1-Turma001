@@ -173,7 +173,7 @@ async def subscribe_email(
     try:
         await EmailAdapter.send(
             to=body.email,
-            subject="[PisciniaoMonitor] Confirme sua inscrição de alertas",
+            subject="[Alerta Romano] Confirme sua inscrição de alertas",
             body_html=render_confirm_email(confirm_url, unsubscribe_url),
         )
     except Exception as exc:  # noqa: BLE001

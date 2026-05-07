@@ -1,7 +1,9 @@
+name: vigia-romano
+
 services:
   postgres:
     image: timescale/timescaledb:latest-pg16
-    container_name: vigia_romano_postgres
+    container_name: alerta_romano_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -18,7 +20,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: vigia_romano_redis
+    container_name: alerta_romano_redis
     restart: unless-stopped
     command: >
       redis-server
@@ -38,7 +40,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: vigia_romano_backend
+    container_name: alerta_romano_backend
     restart: unless-stopped
     env_file: .env
     depends_on:
@@ -48,6 +50,9 @@ services:
         condition: service_healthy
     expose:
       - "8000"
+    networks:
+      - default
+      - pji510  # rede externa PJI510 — consumer RabbitMQ precisa alcançar o container rabbitmq
     # Roda migrations antes de subir o servidor
     command: >
       sh -c "alembic upgrade head &&
@@ -57,7 +62,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: vigia_romano_worker
+    container_name: alerta_romano_worker
     restart: unless-stopped
     env_file: .env
     depends_on:
@@ -74,7 +79,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: vigia_romano_frontend
+    container_name: alerta_romano_frontend
     restart: unless-stopped
     depends_on:
       - backend
@@ -83,7 +88,7 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: vigia_romano_nginx
+    container_name: alerta_romano_nginx
     restart: unless-stopped
     depends_on:
       - backend
@@ -101,7 +106,7 @@ volumes:
 
 networks:
   default:
-    name: vigia_romano_default
+    name: alerta_romano_default
   pji510:
     external: true
-    name: rabbitmq_pji510_2026s1_default  # rede gerenciada pela equipe PJI510
+    name: pji510  # rede gerenciada pela equipe PJI510

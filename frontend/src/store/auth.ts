@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => set({ token: null, refreshToken: null, user: null }),
     }),
     {
-      name: 'piscinao-auth',
+      name: 'alerta-romano-auth',
     },
   ),
 )

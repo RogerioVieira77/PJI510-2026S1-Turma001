@@ -94,8 +94,8 @@ async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 async def seed(db: AsyncSession):
     """Cria reservatório, sensor, usuário gestor e usuário operador."""
     reservatorio = Reservatorio(
-        nome="Piscinão Norte",
-        codigo="RES-001",
+        nome="Piscinão Romano",
+        codigo="RES-ROMANO",
         capacidade_m3=50_000,
         latitude=-23.5,
         longitude=-46.6,

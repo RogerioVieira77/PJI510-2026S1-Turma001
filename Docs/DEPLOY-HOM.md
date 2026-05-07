@@ -1,12 +1,12 @@
-# Vigia Romano — Runbook de Deploy em Homologação
+# Alerta Romano — Runbook de Deploy em Homologação
 
 ## Identificação do Deploy
 
 | Campo | Valor |
 |-------|-------|
-| Aplicação | `vigia-romano` |
-| Domínio | `vigia-romano.unicomunitaria.com.br` |
-| Caminho no servidor | `/opt/unicomunitaria/docker/vigia-romano` |
+| Aplicação | `alerta-romano` |
+| Domínio | `alertaromano.unicomunitaria.com.br` |
+| Caminho no servidor | `/opt/unicomunitaria/docker/alerta-romano` |
 | Porta local (host) | `8083` |
 | Repositório | `git@github.com:RogerioVieira77/PJI510-2026S1-Turma001.git` |
 | Healthcheck | `/api/v1/health` |
@@ -16,9 +16,9 @@
 
 ## Pré-checklist (execute antes de qualquer passo)
 
-- [ ] DNS de `vigia-romano.unicomunitaria.com.br` aponta para `191.101.234.42`
+- [ ] DNS de `alertaromano.unicomunitaria.com.br` aponta para `191.101.234.42`
   ```bash
-  dig +short vigia-romano.unicomunitaria.com.br
+  dig +short alertaromano.unicomunitaria.com.br
   # Resultado esperado: 191.101.234.42
   ```
 - [ ] Certificado wildcard está presente no servidor
@@ -38,9 +38,9 @@
 ## Variáveis de Deploy
 
 ```bash
-export APP_NAME="vigia-romano"
-export APP_DOMAIN="vigia-romano.unicomunitaria.com.br"
-export APP_REPO_PATH="/opt/unicomunitaria/docker/vigia-romano"
+export APP_NAME="alerta-romano"
+export APP_DOMAIN="alertaromano.unicomunitaria.com.br"
+export APP_REPO_PATH="/opt/unicomunitaria/docker/alerta-romano"
 export APP_PORT="8083"
 export APP_HEALTHCHECK_PATH="/api/v1/health"
 ```
@@ -52,12 +52,12 @@ export APP_HEALTHCHECK_PATH="/api/v1/health"
 ```bash
 sudo mkdir -p /opt/unicomunitaria/docker
 sudo git clone git@github.com:RogerioVieira77/PJI510-2026S1-Turma001.git \
-  /opt/unicomunitaria/docker/vigia-romano
+  /opt/unicomunitaria/docker/alerta-romano
 
 # Definir permissão de dono (ajuste o usuário se necessário)
-sudo chown -R $USER:$USER /opt/unicomunitaria/docker/vigia-romano
+sudo chown -R $USER:$USER /opt/unicomunitaria/docker/alerta-romano
 
-cd /opt/unicomunitaria/docker/vigia-romano
+cd /opt/unicomunitaria/docker/alerta-romano
 git log --oneline -n 3
 ```
 
@@ -82,7 +82,7 @@ Preencher **obrigatoriamente** os campos abaixo no `.env`:
 | `VAPID_PUBLIC_KEY` | Gerado em Passo 2.1 |
 | `VAPID_PRIVATE_KEY` | Gerado em Passo 2.1 |
 | `APP_ENV` | `homolog` |
-| `CORS_ORIGINS` | `https://vigia-romano.unicomunitaria.com.br` |
+| `CORS_ORIGINS` | `https://alertaromano.unicomunitaria.com.br` |
 | `DATABASE_URL` | `postgresql+asyncpg://<USER>:<SENHA>@postgres:5432/<DB>` |
 | `REDIS_URL` | `redis://:<REDIS_PASSWORD>@redis:6379/0` |
 
@@ -127,13 +127,13 @@ docker compose ps
 Resultado esperado:
 
 ```
-NAME                     STATUS
-vigia_romano_postgres    Up (healthy)
-vigia_romano_redis       Up (healthy)
-vigia_romano_backend     Up
-vigia_romano_worker      Up
-vigia_romano_frontend    Up
-vigia_romano_nginx       Up
+NAME                      STATUS
+alerta_romano_postgres    Up (healthy)
+alerta_romano_redis       Up (healthy)
+alerta_romano_backend     Up
+alerta_romano_worker      Up
+alerta_romano_frontend    Up
+alerta_romano_nginx       Up
 ```
 
 ---
@@ -160,7 +160,7 @@ curl -o /dev/null -w '%{http_code}\n' "http://127.0.0.1:${APP_PORT}/api/v1/auth/
 
 ```bash
 # Copiar vhost
-sudo cp "$APP_REPO_PATH/nginx/vigia-romano.hml.conf" \
+sudo cp "$APP_REPO_PATH/nginx/alerta-romano.hml.conf" \
         "/etc/nginx/sites-available/${APP_NAME}.hml.conf"
 
 # Habilitar (symlink)
@@ -291,10 +291,10 @@ Preencher após conclusão bem-sucedida:
 
 ```
 Deploy realizado em: ___/___/____  __:__
-Aplicação:          vigia-romano
-Domínio:            vigia-romano.unicomunitaria.com.br
+Aplicação:          alerta-romano
+Domínio:            alertaromano.unicomunitaria.com.br
 Porta local:        8083
-Caminho:            /opt/unicomunitaria/docker/vigia-romano
+Caminho:            /opt/unicomunitaria/docker/alerta-romano
 Versão implantada:  (branch/commit: _______________)
 Status NGINX host:  OK / FALHOU
 Status UFW:         OK / FALHOU

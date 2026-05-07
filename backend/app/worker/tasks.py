@@ -16,7 +16,6 @@ from app.modules.alertas.adapters.webpush import PushAdapter
 from app.modules.alertas.models import Alerta
 from app.modules.alertas.repository import AlertaRepository
 from app.modules.clima.service import ClimaService
-from app.modules.ingestao.consumer import RabbitMQAmqpConsumer
 from app.modules.ingestao.models import Reservatorio
 
 log = structlog.get_logger()
@@ -56,7 +55,7 @@ async def enviar_push_notifications(ctx: dict, alerta_id: int) -> None:
             return
 
         payload = {
-            "title": f"PisciniaoMonitor — {_NIVEL_LABELS.get(alerta.nivel.value, alerta.nivel.value)}",
+            "title": f"Alerta Romano — {_NIVEL_LABELS.get(alerta.nivel.value, alerta.nivel.value)}",
             "body": alerta.mensagem,
             "reservatorio": nome,
             "nivel": alerta.nivel.value,
@@ -141,7 +140,7 @@ async def enviar_email_notifications(ctx: dict, alerta_id: int) -> None:
                 )
                 await EmailAdapter.send(
                     to=sub.email,
-                    subject=f"[PisciniaoMonitor] {nivel_label} — {nome}",
+                    subject=f"[Alerta Romano] {nivel_label} — {nome}",
                     body_html=body,
                 )
                 log.info("worker.email.enviado", alerta_id=alerta_id, to=sub.email)
@@ -162,31 +161,10 @@ async def atualizar_clima(ctx: dict) -> None:
         log.info("worker.clima.atualizado", ok=result["ok"], erro=result["erro"])
 
 
-async def consumir_fila_sensores(ctx: dict) -> None:
-    """ARQ cron task: consome leituras de sensores da fila RabbitMQ (a cada minuto).
-
-    Ativado apenas quando ``RABBITMQ_ENABLED=true`` no ambiente.
-    """
-    if not _settings.RABBITMQ_ENABLED:
-        return
-
-    consumer = RabbitMQAmqpConsumer()
-
-    async with AsyncSessionLocal() as session:
-        try:
-            count = await consumer.fetch_and_process(session)
-            await session.commit()
-            log.info("worker.fila.processado", leituras_inseridas=count)
-        except Exception as exc:  # noqa: BLE001
-            await session.rollback()
-            log.error("worker.fila.erro", error=str(exc))
-
-
 class WorkerSettings:
     functions = [enviar_push_notifications, enviar_email_notifications]
     cron_jobs = [
         cron(atualizar_clima, minute={0, 30}),
-        cron(consumir_fila_sensores, second=0),  # executa a cada minuto
     ]
     on_startup = startup
     on_shutdown = shutdown

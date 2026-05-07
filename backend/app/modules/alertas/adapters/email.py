@@ -51,7 +51,7 @@ _CONFIRM_TEMPLATE = """\
 <html lang="pt-BR">
 <body>
   <p>Olá,</p>
-  <p>Confirme sua assinatura de alertas do <strong>PiscinãoMonitor</strong>:</p>
+  <p>Confirme sua assinatura de alertas do <strong>Alerta Romano</strong>:</p>
   <p><a href="{confirm_url}">Confirmar assinatura</a></p>
   <p>Se você não solicitou isso, ignore este e-mail.</p>
   <hr/>
@@ -64,7 +64,7 @@ _ALERTA_TEMPLATE = """\
 <!DOCTYPE html>
 <html lang="pt-BR">
 <body>
-  <p><strong>Alerta PisciniaoMonitor</strong></p>
+  <p><strong>Alerta Romano</strong></p>
   <p>Reservatório: <strong>{reservatorio_nome}</strong></p>
   <p>Nível: <strong>{nivel_label}</strong> ({nivel_pct:.1f}%)</p>
   <p>{mensagem}</p>

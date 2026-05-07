@@ -3,9 +3,9 @@ requires = ["setuptools>=70"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "piscinao-monitor-backend"
+name = "alerta-romano-backend"
 version = "0.1.0"
-description = "Backend do Sistema de Monitoramento de Piscinões"
+description = "Backend do Sistema de Alertas Alerta Romano"
 requires-python = ">=3.12"
 
 dependencies = [

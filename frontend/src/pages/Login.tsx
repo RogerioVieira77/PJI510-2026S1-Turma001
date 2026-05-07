@@ -48,8 +48,8 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-slate-900">
       <div className="w-full max-w-sm rounded-xl bg-slate-800 p-8 shadow-lg">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-white">PiscinãoMonitor</h1>
-          <p className="mt-1 text-sm text-slate-400">Sistema de Monitoramento de Reservatórios</p>
+          <h1 className="text-2xl font-bold text-white">Alerta Romano</h1>
+          <p className="mt-1 text-sm text-slate-400">Sistema de Alertas — Piscinão Romano</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

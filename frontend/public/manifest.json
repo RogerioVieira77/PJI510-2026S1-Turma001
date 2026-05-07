@@ -1,7 +1,7 @@
 {
-  "name": "PiscinãoMonitor",
-  "short_name": "PiscinãoMon",
-  "description": "Monitoramento de reservatórios de detenção de cheias de São Paulo",
+  "name": "Alerta Romano",
+  "short_name": "AlertaRom",
+  "description": "Sistema de alertas de nível do Piscinão Romano — Jardim Romano, São Paulo",
   "lang": "pt-BR",
   "theme_color": "#1e40af",
   "background_color": "#0f172a",

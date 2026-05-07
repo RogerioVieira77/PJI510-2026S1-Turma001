@@ -20,6 +20,7 @@ from app.modules.dashboard.router import publico_router, ws_router
 from app.modules.alertas.router import router as alertas_router
 from app.modules.clima.router import router as clima_router
 from app.modules.processamento.service import subscriber_nova_leitura
+from app.modules.ingestao.consumer import consumir_fila_continuamente
 
 log = structlog.get_logger()
 settings = get_settings()
@@ -28,18 +29,21 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # type: ignore[type-arg]
     log.info("startup", env=settings.APP_ENV)
-    task = asyncio.create_task(subscriber_nova_leitura())
+    task_processamento = asyncio.create_task(subscriber_nova_leitura())
+    task_consumer = asyncio.create_task(consumir_fila_continuamente())
     yield
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    task_processamento.cancel()
+    task_consumer.cancel()
+    for task in (task_processamento, task_consumer):
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
     log.info("shutdown")
 
 
 app = FastAPI(
-    title="PiscinãoMonitor API",
+    title="Alerta Romano API",
     version="0.1.0",
     docs_url="/api/v1/docs",
     redoc_url="/api/v1/redoc",

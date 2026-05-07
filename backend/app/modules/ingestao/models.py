@@ -24,6 +24,14 @@ class TipoSensorEnum(str, enum.Enum):
     nivel = "nivel"
     vazao = "vazao"
     chuva = "chuva"
+    # Tipos reais PJI510
+    nivel_agua = "nivel_agua"
+    pluviometro = "pluviometro"
+    temperatura = "temperatura"
+    pressao = "pressao"
+    umidade = "umidade"
+    vento_direcao = "vento_direcao"
+    vento_velocidade = "vento_velocidade"
 
 
 class Reservatorio(Base):
@@ -60,6 +68,8 @@ class Sensor(Base):
     criado_em: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    latitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7), nullable=True)
+    longitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7), nullable=True)
 
     reservatorio: Mapped[Reservatorio] = relationship("Reservatorio", back_populates="sensores")
 

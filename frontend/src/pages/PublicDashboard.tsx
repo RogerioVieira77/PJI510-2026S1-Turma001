@@ -99,8 +99,8 @@ export default function PublicDashboard() {
       <header className="border-b border-slate-700 bg-slate-900 px-6 py-4 shadow">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-blue-400">PiscinãoMonitor</h1>
-            <p className="text-xs text-slate-400">Monitoramento público de piscinões — São Paulo</p>
+            <h1 className="text-xl font-bold text-blue-400">Alerta Romano</h1>
+            <p className="text-xs text-slate-400">Monitoramento público — Piscinão Romano, Jardim Romano</p>
           </div>
           <a
             href="/login"
@@ -156,7 +156,7 @@ export default function PublicDashboard() {
 
         {/* Rodapé */}
         <footer className="border-t border-slate-700 pt-6 text-center text-xs text-slate-500">
-          Dados atualizados em tempo real via WebSocket · PiscinãoMonitor © 2026
+          Dados atualizados em tempo real via WebSocket · Alerta Romano © 2026
         </footer>
       </main>
     </div>

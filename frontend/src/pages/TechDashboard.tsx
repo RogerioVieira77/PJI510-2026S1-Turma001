@@ -42,7 +42,7 @@ export default function TechDashboard() {
       <header className="border-b border-slate-200 bg-white px-6 py-3 shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-blue-700">PiscinãoMonitor</span>
+            <span className="text-xl font-bold text-blue-700">Alerta Romano</span>
             <span className="rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 uppercase">
               Técnico
             </span>
