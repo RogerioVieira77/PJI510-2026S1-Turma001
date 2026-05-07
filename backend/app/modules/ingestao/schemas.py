@@ -9,11 +9,19 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class UnidadeEnum(str, enum.Enum):
+    # Unidades do sistema interno
     cm = "cm"
     m3_s = "m3/s"
     mm = "mm"
     pct = "%"
     m3 = "m3"
+    # Unidades da fila PJI510 (sensores externos)
+    metros = "metros"
+    m = "m"            # abreviação usada nas mensagens reais da fila
+    m3_s_unicode = "m\u00b3/s"   # m³/s
+    mm_h = "mm/h"
+    kPa = "kPa"
+    celsius = "\u00b0C"          # °C
 
 
 class LeituraCreate(BaseModel):

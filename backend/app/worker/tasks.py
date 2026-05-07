@@ -16,6 +16,7 @@ from app.modules.alertas.adapters.webpush import PushAdapter
 from app.modules.alertas.models import Alerta
 from app.modules.alertas.repository import AlertaRepository
 from app.modules.clima.service import ClimaService
+from app.modules.ingestao.consumer import RabbitMQAmqpConsumer
 from app.modules.ingestao.models import Reservatorio
 
 log = structlog.get_logger()
@@ -154,16 +155,39 @@ async def enviar_email_notifications(ctx: dict, alerta_id: int) -> None:
 
 
 async def atualizar_clima(ctx: dict) -> None:
-    """ARQ cron task: atualiza dados clim\u00e1ticos a cada 30 minutos."""
+    """ARQ cron task: atualiza dados climáticos a cada 30 minutos."""
     async with AsyncSessionLocal() as session:
         service = ClimaService(session)
         result = await service.atualizar_todos_reservatorios()
         log.info("worker.clima.atualizado", ok=result["ok"], erro=result["erro"])
 
 
+async def consumir_fila_sensores(ctx: dict) -> None:
+    """ARQ cron task: consome leituras de sensores da fila RabbitMQ (a cada minuto).
+
+    Ativado apenas quando ``RABBITMQ_ENABLED=true`` no ambiente.
+    """
+    if not _settings.RABBITMQ_ENABLED:
+        return
+
+    consumer = RabbitMQAmqpConsumer()
+
+    async with AsyncSessionLocal() as session:
+        try:
+            count = await consumer.fetch_and_process(session)
+            await session.commit()
+            log.info("worker.fila.processado", leituras_inseridas=count)
+        except Exception as exc:  # noqa: BLE001
+            await session.rollback()
+            log.error("worker.fila.erro", error=str(exc))
+
+
 class WorkerSettings:
     functions = [enviar_push_notifications, enviar_email_notifications]
-    cron_jobs = [cron(atualizar_clima, minute={0, 30})]
+    cron_jobs = [
+        cron(atualizar_clima, minute={0, 30}),
+        cron(consumir_fila_sensores, second=0),  # executa a cada minuto
+    ]
     on_startup = startup
     on_shutdown = shutdown
     redis_settings = RedisSettings.from_dsn(str(_settings.REDIS_URL))

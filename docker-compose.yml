@@ -65,6 +65,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - default
+      - pji510  # rede externa PJI510 — permite alcançar o container rabbitmq
     command: python -m arq app.worker.tasks.WorkerSettings
 
   frontend:
@@ -95,3 +98,10 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  default:
+    name: vigia_romano_default
+  pji510:
+    external: true
+    name: rabbitmq_pji510_2026s1_default  # rede gerenciada pela equipe PJI510

@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     SMTP_FROM: str = ""
     SMTP_TLS: bool = True
 
+    # RabbitMQ — conexão AMQP direta (fila PJI510, sem TLS, rede interna Docker)
+    RABBITMQ_HOST: str = "rabbitmq"   # "rabbitmq" no Docker | "127.0.0.1" no host
+    RABBITMQ_PORT: int = 5672
+    RABBITMQ_VHOST: str = "/pji510"
+    RABBITMQ_USER: str = "alerta_consumer"
+    RABBITMQ_PASSWORD: str = ""
+    RABBITMQ_QUEUE: str = "sensores.leituras"
+    RABBITMQ_BATCH_SIZE: int = 50
+    RABBITMQ_ENABLED: bool = False  # set True in .env para ativar o consumer
+
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost", "http://localhost:3000"]
 
