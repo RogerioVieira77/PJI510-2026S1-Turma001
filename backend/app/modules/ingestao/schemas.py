@@ -8,6 +8,17 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
+class FonteAlimentacaoEnum(str, enum.Enum):
+    rede = "rede"
+    bateria = "bateria"
+
+
+class BmsNivelEnum(str, enum.Enum):
+    normal = "normal"
+    alerta = "alerta"
+    critico = "critico"
+
+
 class UnidadeEnum(str, enum.Enum):
     # Unidades do sistema interno
     cm = "cm"
@@ -30,8 +41,13 @@ class UnidadeEnum(str, enum.Enum):
 class LeituraCreate(BaseModel):
     sensor_id: int = Field(..., gt=0, description="ID do sensor")
     timestamp: datetime = Field(..., description="Momento da leitura (UTC)")
-    valor: float = Field(..., ge=0.0, description="Valor medido (não negativo)")
+    valor: float = Field(..., description="Valor medido")
     unidade: UnidadeEnum = Field(..., description="Unidade de medida")
+    # ── Campos de energia e estado (PJI510) ──────────────────────────────────
+    ativo: bool = Field(default=True, description="Sensor ligado/apto para enviar leituras")
+    fonte_alimentacao: FonteAlimentacaoEnum | None = Field(default=None, description="Fonte elétrica atual")
+    bateria_pct: int | None = Field(default=None, ge=0, le=100, description="Carga da bateria (0–100 %)")
+    bms_nivel: BmsNivelEnum | None = Field(default=None, description="Estado de saúde do BMS")
 
     @field_validator("timestamp")
     @classmethod

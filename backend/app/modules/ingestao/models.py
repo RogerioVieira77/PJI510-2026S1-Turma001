@@ -11,6 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Numeric,
+    SmallInteger,
     String,
     Text,
     func,
@@ -88,6 +89,10 @@ class LeituraSensor(Base):
     )
     valor: Mapped[Decimal] = mapped_column(Numeric(10, 3), nullable=False)
     nivel_percentual: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    # ── Campos de energia e estado (PJI510) ───────────────────────────────────
+    fonte_alimentacao: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    bateria_pct: Mapped[int | None] = mapped_column(SmallInteger(), nullable=True)
+    bms_nivel: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
     __table_args__ = (
         Index("ix_leitura_sensor_sensor_ts", "sensor_id", "timestamp"),

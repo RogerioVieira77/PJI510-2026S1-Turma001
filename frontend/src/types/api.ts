@@ -23,6 +23,10 @@ export interface StatusReservatorio {
   status: string
   divergencia_sensores: boolean
   timestamp: string
+  // Campos de energia e estado (PJI510)
+  bms_nivel?: 'normal' | 'alerta' | 'critico' | null
+  fonte_alimentacao?: 'rede' | 'bateria' | null
+  bateria_pct_min?: number | null
 }
 
 export interface PontoHistorico {
@@ -49,4 +53,31 @@ export interface StatusPublico {
   status: string
   nivel_pct: number | null
   ultima_atualizacao: string | null
+}
+
+export interface LeituraPublica {
+  sensor_id: number
+  codigo: string
+  descricao: string
+  valor: number | null
+  unidade: string | null
+  timestamp: string | null
+}
+
+export interface EstacaoPublica {
+  codigo_estacao: string
+  descricao: string
+  temperatura: number | null
+  umidade: number | null
+  pressao: number | null
+  pluviometro: number | null
+  vento_velocidade: number | null
+  vento_direcao: number | null
+  timestamp: string | null
+}
+
+export interface LeituraSensoresPublico {
+  sensores_nivel: LeituraPublica[]
+  estacoes: EstacaoPublica[]
+  atualizado_em: string
 }

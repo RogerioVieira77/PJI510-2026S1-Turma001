@@ -21,14 +21,16 @@ interface Props {
 }
 
 export default function ReservoirMap({ reservatorios }: Props) {
-  const center: [number, number] = [-23.55, -46.63]
+  const first = reservatorios[0]
+  const center: [number, number] =
+    first ? [Number(first.latitude), Number(first.longitude)] : [-23.4778200, -46.3829000]
 
   return (
     <MapContainer
       center={center}
-      zoom={11}
+      zoom={16}
       className="h-[420px] w-full rounded-xl"
-      scrollWheelZoom={false}
+      scrollWheelZoom={true}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

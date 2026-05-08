@@ -6,12 +6,16 @@ e persiste as leituras no banco usando o pipeline existente (IngestaoService).
 Registrado como background task no lifespan do FastAPI — latência < 5 s.
 
 Campos esperados em cada mensagem da fila (JSON):
-    sensor_id   - código externo do dispositivo (ex: "SENSOR-RES-001")
-    tipo_sensor - tipo do sensor (nivel_agua / pluviometro / temperatura / ...)
-    valor       - valor numérico da medição
-    unidade     - unidade de medida enviada pelo PJI510
-    status      - status do sensor: normal | alerta | critico | erro  (opcional)
-    timestamp   - ISO-8601 UTC (opcional; usa now() se ausente)
+    sensor_id         - código externo do dispositivo (ex: "SENSOR-RES-001")
+    tipo_sensor       - tipo do sensor (nivel_agua / pluviometro / temperatura / ...)
+    valor             - valor numérico da medição
+    unidade           - unidade de medida enviada pelo PJI510
+    status            - status do sensor: normal | alerta | critico | erro  (opcional)
+    timestamp         - ISO-8601 UTC (opcional; usa now() se ausente)
+    ativo             - bool: se false, mensagem é descartada sem persistência (opcional, default true)
+    fonte_alimentacao - fonte elétrica: rede | bateria (opcional)
+    bateria_pct       - carga da bateria 0–100 (opcional)
+    bms_nivel         - estado BMS: normal | alerta | critico (opcional)
 
 Código de sensor no banco = f"{sensor_id}-{tipo_sensor}" (chave composta).
 Conversão de unidade: m / metros → cm (×100); demais unidades são salvas como enviadas.
@@ -30,7 +34,13 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.database import AsyncSessionLocal
 from app.modules.ingestao.models import Sensor
-from app.modules.ingestao.schemas import LeituraBatchCreate, LeituraCreate, UnidadeEnum
+from app.modules.ingestao.schemas import (
+    BmsNivelEnum,
+    FonteAlimentacaoEnum,
+    LeituraBatchCreate,
+    LeituraCreate,
+    UnidadeEnum,
+)
 from app.modules.ingestao.service import IngestaoService
 
 log = structlog.get_logger()
@@ -75,6 +85,16 @@ async def _processar_mensagem(msg: aio_pika.abc.AbstractIncomingMessage) -> None
         sensor_id = str(data["sensor_id"]).strip()
         tipo_sensor = str(data.get("tipo_sensor", "")).strip()
         status_sensor = str(data.get("status", "normal")).lower().strip()
+
+        # ── Campo `ativo` — sensor desligado: descarta sem persistir ─────────
+        ativo = bool(data.get("ativo", True))
+        if not ativo:
+            log.warning(
+                "consumer.sensor_auto_desligado",
+                sensor_id=sensor_id,
+            )
+            await msg.reject(requeue=False)
+            return
 
         if status_sensor in _STATUS_IGNORADOS:
             log.warning(
@@ -133,11 +153,39 @@ async def _processar_mensagem(msg: aio_pika.abc.AbstractIncomingMessage) -> None
                 except (ValueError, TypeError):
                     pass
 
+            # ── Campos de energia e estado (opcionais) ────────────────────
+            fonte_raw = data.get("fonte_alimentacao")
+            fonte: FonteAlimentacaoEnum | None = None
+            if fonte_raw is not None:
+                try:
+                    fonte = FonteAlimentacaoEnum(str(fonte_raw).strip())
+                except ValueError:
+                    pass
+
+            bateria_raw = data.get("bateria_pct")
+            bateria_pct: int | None = None
+            if bateria_raw is not None:
+                try:
+                    bateria_pct = max(0, min(100, int(bateria_raw)))
+                except (TypeError, ValueError):
+                    pass
+
+            bms_raw = data.get("bms_nivel")
+            bms: BmsNivelEnum | None = None
+            if bms_raw is not None:
+                try:
+                    bms = BmsNivelEnum(str(bms_raw).strip())
+                except ValueError:
+                    pass
+
             leitura = LeituraCreate(
                 sensor_id=sensor_db_id,
                 timestamp=timestamp,
                 valor=valor,
                 unidade=unidade,
+                fonte_alimentacao=fonte,
+                bateria_pct=bateria_pct,
+                bms_nivel=bms,
             )
 
             service = IngestaoService(session)

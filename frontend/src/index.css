@@ -55,3 +55,20 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* ── Leaflet: corrige conflito com Tailwind Preflight ───────────────────────
+   O Preflight do Tailwind aplica max-width:100% e display:block em <img>,
+   o que quebra os tiles do mapa. Estes overrides restauram o comportamento
+   esperado pelo Leaflet.                                                    */
+.leaflet-container img.leaflet-tile {
+  max-width: none;
+  display: inline;
+}
+
+.leaflet-container img {
+  max-width: none;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}

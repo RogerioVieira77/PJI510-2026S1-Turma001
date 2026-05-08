@@ -23,6 +23,7 @@ from app.modules.dashboard.schemas import (
     ReservatorioSummary,
     StatusPublico,
     StatusReservatorio,
+    LeituraSensoresPublico,
 )
 
 log = structlog.get_logger()
@@ -124,6 +125,15 @@ async def status_publico(
 ) -> list[StatusPublico]:
     """Status simplificado de todos os reservatórios (sem auth, cache 30s)."""
     return await svc.get_publico_status(session)
+
+
+@publico_router.get("/leituras/{reservatorio_id}", response_model=LeituraSensoresPublico)
+async def leituras_publico(
+    reservatorio_id: int,
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> LeituraSensoresPublico:
+    """Últimas leituras de sensores de nível e estações meteorológicas (sem auth)."""
+    return await svc.get_leituras_publico(reservatorio_id, session)
 
 
 # ── WebSocket ────────────────────────────────────────────────────────────────

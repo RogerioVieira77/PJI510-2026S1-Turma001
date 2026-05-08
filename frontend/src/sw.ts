@@ -34,12 +34,15 @@ registerRoute(
   }),
 )
 
-// CacheFirst para assets estáticos (imagens, fontes, ícones)
+// CacheFirst para assets estáticos SAME-ORIGIN (imagens, fontes, ícones)
+// Exclui recursos cross-origin (ex.: tiles do OpenStreetMap) para não cacheear
+// respostas opacas que podem estar inválidas ou bloqueadas por CSP.
 registerRoute(
-  ({ request }: { request: Request }) =>
-    request.destination === 'image' ||
-    request.destination === 'font' ||
-    request.destination === 'style',
+  ({ request, url }: { request: Request; url: URL }) =>
+    url.origin === self.location.origin &&
+    (request.destination === 'image' ||
+      request.destination === 'font' ||
+      request.destination === 'style'),
   new CacheFirst({
     cacheName: 'static-assets',
     plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 })],

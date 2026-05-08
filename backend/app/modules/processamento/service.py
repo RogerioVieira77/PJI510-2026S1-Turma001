@@ -99,6 +99,30 @@ class ProcessamentoService:
                 leituras_por_sensor[leitura.sensor_id] = float(leitura.valor)
         divergencia = policies.detectar_divergencia_sensores(leituras_por_sensor)
 
+        # ── BMS / Energia: consolidar pior caso entre as leituras recentes ────
+        # Ordena: critico > alerta > normal > None
+        _BMS_PRIO = {"critico": 2, "alerta": 1, "normal": 0}
+        bms_nivel: str | None = None
+        bateria_pct_min: int | None = None
+        em_bateria = False
+
+        for leitura in leituras:
+            if leitura.bms_nivel is not None:
+                prioridade_atual = _BMS_PRIO.get(leitura.bms_nivel, -1)
+                prioridade_armazenada = _BMS_PRIO.get(bms_nivel, -1) if bms_nivel else -1
+                if prioridade_atual > prioridade_armazenada:
+                    bms_nivel = leitura.bms_nivel
+            if leitura.fonte_alimentacao == "bateria":
+                em_bateria = True
+            if leitura.bateria_pct is not None:
+                bateria_pct_min = (
+                    leitura.bateria_pct
+                    if bateria_pct_min is None
+                    else min(bateria_pct_min, leitura.bateria_pct)
+                )
+
+        fonte_alimentacao = "bateria" if em_bateria else ("rede" if leituras else None)
+
         result = {
             "reservatorio_id": reservatorio_id,
             "nivel_cm": round(nivel_cm, 2),
@@ -109,6 +133,10 @@ class ProcessamentoService:
             "status": status,
             "divergencia_sensores": divergencia,
             "timestamp": ultima_leitura.timestamp.isoformat(),
+            # Campos de energia e estado
+            "bms_nivel": bms_nivel,
+            "fonte_alimentacao": fonte_alimentacao,
+            "bateria_pct_min": bateria_pct_min,
         }
 
         log.info(

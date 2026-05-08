@@ -21,6 +21,20 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+function BmsBadge({ nivel }: { nivel: string }) {
+  const map: Record<string, { bg: string; text: string; label: string }> = {
+    normal: { bg: 'bg-green-100', text: 'text-green-700', label: 'BMS Normal' },
+    alerta: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'BMS Alerta' },
+    critico: { bg: 'bg-red-100', text: 'text-red-700', label: 'BMS Crítico' },
+  }
+  const s = map[nivel] ?? map['normal']
+  return (
+    <span className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${s.bg} ${s.text}`}>
+      {s.label}
+    </span>
+  )
+}
+
 interface CardProps {
   label: string
   value: string
@@ -58,6 +72,11 @@ export default function SensorStatusPanel({ reservatorioId }: Props) {
     ? new Date(status.timestamp).toLocaleTimeString('pt-BR')
     : '—'
 
+  const alimentacao =
+    status?.fonte_alimentacao === 'bateria' ? 'Bateria emergência' :
+    status?.fonte_alimentacao === 'rede' ? 'Rede elétrica' : '—'
+  const bateriaPct = status?.bateria_pct_min != null ? `${status.bateria_pct_min}%` : '—'
+
   return (
     <div className="space-y-4">
       {/* Banner de reconexão */}
@@ -76,6 +95,18 @@ export default function SensorStatusPanel({ reservatorioId }: Props) {
         {status ? <StatusBadge status={status.status} /> : <span className="text-sm text-slate-400">—</span>}
         <span className="text-xs text-slate-400">Atualizado às {ultimaAtualizacao}</span>
       </div>
+
+      {/* Energia e BMS */}
+      {status?.fonte_alimentacao != null && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Alimentação:</span>
+          <span className="text-sm font-semibold text-slate-700">{alimentacao}</span>
+          {status.fonte_alimentacao === 'bateria' && (
+            <span className="text-sm text-slate-600">({bateriaPct})</span>
+          )}
+          {status.bms_nivel != null && <BmsBadge nivel={status.bms_nivel} />}
+        </div>
+      )}
 
       {/* Indicadores */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

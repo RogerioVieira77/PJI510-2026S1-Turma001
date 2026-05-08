@@ -52,3 +52,33 @@ class StatusPublico(BaseModel):
     status: str
     nivel_pct: float
     ultima_atualizacao: str | None = None
+
+
+class LeituraPublica(BaseModel):
+    """Última leitura de um único sensor de nível, para o dashboard público."""
+    sensor_id: int
+    codigo: str
+    descricao: str
+    valor: float | None = None
+    unidade: str | None = None
+    timestamp: datetime | None = None
+
+
+class EstacaoPublica(BaseModel):
+    """Todas as últimas leituras de uma estação meteorológica, agrupadas."""
+    codigo_estacao: str
+    descricao: str
+    temperatura: float | None = None
+    umidade: float | None = None
+    pressao: float | None = None
+    pluviometro: float | None = None
+    vento_velocidade: float | None = None
+    vento_direcao: float | None = None
+    timestamp: datetime | None = None
+
+
+class LeituraSensoresPublico(BaseModel):
+    """Payload completo do endpoint público de leituras."""
+    sensores_nivel: list[LeituraPublica]
+    estacoes: list[EstacaoPublica]
+    atualizado_em: datetime

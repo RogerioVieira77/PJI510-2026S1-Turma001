@@ -105,3 +105,78 @@ class DashboardRepository:
             {"ids": sensor_ids, "start": start, "end": end},
         )
         return list(result.mappings().all())
+
+    async def get_latest_by_tipo(
+        self, reservatorio_id: int, tipo: TipoSensorEnum
+    ) -> list[tuple[Sensor, float | None, str | None, datetime | None]]:
+        """Retorna lista de (sensor, valor, unidade, timestamp) da última leitura de cada sensor do tipo."""
+        result = await self._session.execute(
+            select(Sensor).where(
+                Sensor.reservatorio_id == reservatorio_id,
+                Sensor.tipo == tipo,
+                Sensor.ativo.is_(True),
+            ).order_by(Sensor.codigo)
+        )
+        sensors = list(result.scalars().all())
+
+        out = []
+        for sensor in sensors:
+            lr = await self._session.execute(
+                select(LeituraSensor.valor, LeituraSensor.timestamp)
+                .where(LeituraSensor.sensor_id == sensor.id)
+                .order_by(LeituraSensor.timestamp.desc())
+                .limit(1)
+            )
+            row = lr.first()
+            if row:
+                out.append((sensor, float(row.valor), sensor.unidade, row.timestamp))
+            else:
+                out.append((sensor, None, sensor.unidade, None))
+        return out
+
+    async def get_latest_by_sensor_ids(
+        self, sensor_ids: list[int]
+    ) -> dict[int, tuple[float, str, datetime]]:
+        """Retorna {sensor_id: (valor, unidade, timestamp)} da última leitura de cada sensor."""
+        result: dict[int, tuple[float, str, datetime]] = {}
+        for sid in sensor_ids:
+            lr = await self._session.execute(
+                select(Sensor.unidade, LeituraSensor.valor, LeituraSensor.timestamp)
+                .join(Sensor, LeituraSensor.sensor_id == Sensor.id)
+                .where(LeituraSensor.sensor_id == sid)
+                .order_by(LeituraSensor.timestamp.desc())
+                .limit(1)
+            )
+            row = lr.first()
+            if row:
+                result[sid] = (float(row.valor), row.unidade, row.timestamp)
+        return result
+
+    async def get_sensores_por_estacao(
+        self, reservatorio_id: int
+    ) -> dict[str, list[Sensor]]:
+        """Agrupa sensores meteorológicos por prefixo de estação (ex: ESTACAO-MET-001)."""
+        tipos_met = [
+            TipoSensorEnum.temperatura,
+            TipoSensorEnum.umidade,
+            TipoSensorEnum.pressao,
+            TipoSensorEnum.pluviometro,
+            TipoSensorEnum.vento_velocidade,
+            TipoSensorEnum.vento_direcao,
+        ]
+        result = await self._session.execute(
+            select(Sensor).where(
+                Sensor.reservatorio_id == reservatorio_id,
+                Sensor.tipo.in_(tipos_met),
+                Sensor.ativo.is_(True),
+            ).order_by(Sensor.codigo)
+        )
+        sensors = list(result.scalars().all())
+
+        groups: dict[str, list[Sensor]] = {}
+        for s in sensors:
+            # Ex: "ESTACAO-MET-001-temperatura" → prefixo "ESTACAO-MET-001"
+            parts = s.codigo.rsplit("-", 1)
+            prefix = parts[0] if len(parts) == 2 else s.codigo
+            groups.setdefault(prefix, []).append(s)
+        return groups

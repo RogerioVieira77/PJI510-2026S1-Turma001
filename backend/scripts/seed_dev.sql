@@ -6,12 +6,22 @@
 -- Requer migration 0005_piscinao_romano.py já aplicada (alembic upgrade head).
 
 -- Usuário admin (senha: Admin@123 — altere antes de usar em staging)
-INSERT INTO usuario (nome, email, hashed_password, role, ativo)
+INSERT INTO usuario (nome, email, senha_hash, role, ativo)
 VALUES (
     'Administrador',
-    'admin@alertaromano.local',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMUxzAlWq0nDRxD7.N7dQmGCYK',
+    'admin@unicomunitaria.com.br',
+    '$2b$12$92RJg1rD/Im7QuW9fpq5i.6NPLSJrRSmcArZLdtsBLiUAYZvSW8ui',
     'admin',
+    TRUE
+) ON CONFLICT (email) DO NOTHING;
+
+-- Usuário operador (senha: Admin@123 — altere antes de usar em staging)
+INSERT INTO usuario (nome, email, senha_hash, role, ativo)
+VALUES (
+    'Técnico',
+    'tecnico@unicomunitaria.com.br',
+    '$2b$12$92RJg1rD/Im7QuW9fpq5i.6NPLSJrRSmcArZLdtsBLiUAYZvSW8ui',
+    'operador',
     TRUE
 ) ON CONFLICT (email) DO NOTHING;
 

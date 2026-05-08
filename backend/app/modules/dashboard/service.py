@@ -149,3 +149,76 @@ async def get_publico_status(session: AsyncSession) -> list[StatusPublico]:
             ex=_CACHE_TTL,
         )
         return items
+
+
+async def get_leituras_publico(
+    reservatorio_id: int, session: AsyncSession
+) -> "LeituraSensoresPublico":
+    """Retorna as últimas leituras de todos os sensores do reservatório, agrupadas
+    por tipo (nível) e por estação meteorológica, para o dashboard público."""
+    from datetime import datetime as _dt
+    from app.modules.dashboard.schemas import (
+        EstacaoPublica,
+        LeituraPublica,
+        LeituraSensoresPublico,
+    )
+    from app.modules.ingestao.models import TipoSensorEnum
+
+    repo = DashboardRepository(session)
+
+    # ── Sensores de nível ────────────────────────────────────────────────────
+    nivel_rows = await repo.get_latest_by_tipo(reservatorio_id, TipoSensorEnum.nivel_agua)
+    sensores_nivel = [
+        LeituraPublica(
+            sensor_id=s.id,
+            codigo=s.codigo,
+            descricao=s.descricao or s.codigo,
+            valor=val,
+            unidade=unid,
+            timestamp=ts,
+        )
+        for s, val, unid, ts in nivel_rows
+    ]
+
+    # ── Estações meteorológicas ──────────────────────────────────────────────
+    grupos = await repo.get_sensores_por_estacao(reservatorio_id)
+    estacoes: list[EstacaoPublica] = []
+
+    for prefixo, sensors in grupos.items():
+        sensor_ids = [s.id for s in sensors]
+        leituras_map = await repo.get_latest_by_sensor_ids(sensor_ids)
+        tipo_map = {s.tipo: s for s in sensors}
+
+        def _val(tipo: TipoSensorEnum) -> float | None:
+            s = tipo_map.get(tipo)
+            return leituras_map[s.id][0] if s and s.id in leituras_map else None
+
+        timestamps = [leituras_map[s.id][2] for s in sensors if s.id in leituras_map]
+        latest_ts = max(timestamps) if timestamps else None
+
+        # Descrição da estação: pega a do primeiro sensor, remove o sufixo do tipo
+        descricao = sensors[0].descricao or prefixo
+        for s in sensors:
+            if s.descricao and "—" in s.descricao:
+                descricao = s.descricao.split("—", 1)[1].strip()
+                break
+
+        estacoes.append(
+            EstacaoPublica(
+                codigo_estacao=prefixo,
+                descricao=descricao,
+                temperatura=_val(TipoSensorEnum.temperatura),
+                umidade=_val(TipoSensorEnum.umidade),
+                pressao=_val(TipoSensorEnum.pressao),
+                pluviometro=_val(TipoSensorEnum.pluviometro),
+                vento_velocidade=_val(TipoSensorEnum.vento_velocidade),
+                vento_direcao=_val(TipoSensorEnum.vento_direcao),
+                timestamp=latest_ts,
+            )
+        )
+
+    return LeituraSensoresPublico(
+        sensores_nivel=sensores_nivel,
+        estacoes=sorted(estacoes, key=lambda e: e.codigo_estacao),
+        atualizado_em=_dt.now(tz=__import__("datetime").timezone.utc),
+    )

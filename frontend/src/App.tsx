@@ -24,11 +24,11 @@ export default function App() {
           <Route path="/" element={<PublicDashboard />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Técnico — requer role gestor ou admin */}
+          {/* Técnico — requer role operador, gestor ou admin */}
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['gestor', 'admin']}>
+              <ProtectedRoute allowedRoles={['operador', 'gestor', 'admin']}>
                 <TechDashboard />
               </ProtectedRoute>
             }
