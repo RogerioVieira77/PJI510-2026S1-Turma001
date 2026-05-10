@@ -82,3 +82,7 @@ class LeituraSensoresPublico(BaseModel):
     sensores_nivel: list[LeituraPublica]
     estacoes: list[EstacaoPublica]
     atualizado_em: datetime
+    # Médias calculadas a partir dos sensores de nível
+    nivel_medio_m: float | None = None
+    nivel_medio_pct: float | None = None
+    volume_medio_m3: float | None = None

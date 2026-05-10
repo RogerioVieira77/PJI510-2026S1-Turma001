@@ -31,7 +31,7 @@ function formatXAxis(value: string, periodo: Periodo): string {
 }
 
 function formatTooltip(value: number) {
-  return [`${value.toFixed(1)} cm`, 'Nível']
+  return [`${value.toFixed(1)} %`, 'Nível']
 }
 
 export default function LevelChart({ reservatorioId }: Props) {

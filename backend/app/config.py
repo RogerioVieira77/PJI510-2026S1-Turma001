@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     RABBITMQ_BATCH_SIZE: int = 50
     RABBITMQ_ENABLED: bool = False  # set True in .env para ativar o consumer
 
+    # RabbitMQ — filas de alertas externos (Defesa Civil + Previsão de Chuva)
+    RABBITMQ_QUEUE_PREVISOES: str = "previsoes.fila"
+    RABBITMQ_QUEUE_DEFESA_SITUACAO: str = "defesa.situacao.fila"
+    RABBITMQ_QUEUE_DEFESA_ALERTAS: str = "defesa.alertas.fila"
+    RABBITMQ_ENABLED_ALERTAS_EXTERNOS: bool = False  # set True in .env para ativar os consumers externos
+
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost", "http://localhost:3000"]
 

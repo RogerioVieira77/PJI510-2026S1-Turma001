@@ -64,15 +64,14 @@ class ProcessamentoService:
         ultima_leitura = leituras[0]
         nivel_cm = float(ultima_leitura.valor)
 
-        # Estimate reservoir depth from capacity and section area
-        # capacidade_m3 / area_secao = profundidade; fallback: treat m3 as cm-equivalent
-        # We store capacity in m3 and use a nominal section area of 1 m2 if unavailable;
-        # the PRD seed uses area_secao_m2=250000 in the description — but the model only
-        # has capacidade_m3, so we derive a nominal capacity_cm from it.
-        capacidade_cm = float(reservatorio.capacidade_m3)  # proxy for threshold calcs
+        # Profundidade real do reservatório (ex: 8 m = 800 cm).
+        # É o denominador correto para calcular o percentual de ocupação:
+        # sensor envia metros de água → convertido para cm → dividido por capacidade_cm.
+        capacidade_cm = float(reservatorio.profundidade_m) * 100.0
 
-        # RN-01
-        volume_m3 = policies.calcular_volume(nivel_cm, 250_000.0)
+        # RN-01: área da seção transversal = volume_total / profundidade
+        area_m2 = float(reservatorio.capacidade_m3) / float(reservatorio.profundidade_m)
+        volume_m3 = policies.calcular_volume(nivel_cm, area_m2)
 
         # RN-02 — use the nivel sensor readings in chronological order
         nivel_leituras = sorted(

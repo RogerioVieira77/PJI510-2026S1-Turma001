@@ -21,6 +21,12 @@ from app.modules.alertas.router import router as alertas_router
 from app.modules.clima.router import router as clima_router
 from app.modules.processamento.service import subscriber_nova_leitura
 from app.modules.ingestao.consumer import consumir_fila_continuamente
+from app.modules.alertas_externos.consumer import (
+    consumir_previsoes,
+    consumir_defesa_situacao,
+    consumir_defesa_alertas,
+)
+from app.modules.alertas_externos.router import publico_alertas_router
 
 log = structlog.get_logger()
 settings = get_settings()
@@ -31,10 +37,14 @@ async def lifespan(app: FastAPI):  # type: ignore[type-arg]
     log.info("startup", env=settings.APP_ENV)
     task_processamento = asyncio.create_task(subscriber_nova_leitura())
     task_consumer = asyncio.create_task(consumir_fila_continuamente())
+    task_previsoes = asyncio.create_task(consumir_previsoes())
+    task_situacao = asyncio.create_task(consumir_defesa_situacao())
+    task_alertas_ext = asyncio.create_task(consumir_defesa_alertas())
     yield
-    task_processamento.cancel()
-    task_consumer.cancel()
-    for task in (task_processamento, task_consumer):
+    all_tasks = (task_processamento, task_consumer, task_previsoes, task_situacao, task_alertas_ext)
+    for task in all_tasks:
+        task.cancel()
+    for task in all_tasks:
         try:
             await task
         except asyncio.CancelledError:
@@ -69,6 +79,7 @@ app.include_router(publico_router, prefix="/api/v1/publico", tags=["publico"])
 app.include_router(alertas_router, prefix="/api/v1/alertas", tags=["alertas"])
 app.include_router(clima_router, prefix="/api/v1/reservatorios", tags=["clima"])
 app.include_router(ws_router, prefix="/ws", tags=["websocket"])
+app.include_router(publico_alertas_router, prefix="/api/v1/publico", tags=["publico"])
 
 
 # ── Health ───────────────────────────────────────────────────────────────────

@@ -42,6 +42,7 @@ class Reservatorio(Base):
     nome: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
     codigo: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True)
     capacidade_m3: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    profundidade_m: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False, server_default="8.0")
     latitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
     longitude: Mapped[Decimal] = mapped_column(Numeric(10, 7), nullable=False)
     descricao: Mapped[str | None] = mapped_column(Text, nullable=True)

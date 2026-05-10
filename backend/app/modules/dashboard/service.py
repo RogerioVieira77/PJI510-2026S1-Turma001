@@ -58,15 +58,23 @@ async def get_historico(
     if not sensor_ids:
         return []
 
+    # Fetch reservoir depth to convert cm readings to percentage
+    from app.modules.ingestao.models import Reservatorio as ReservatorioModel
+    reservatorio = await session.get(ReservatorioModel, reservatorio_id)
+    capacidade_cm = float(reservatorio.profundidade_m) * 100.0 if reservatorio else 800.0
+
+    def _cm_to_pct(valor_cm: float) -> float:
+        return min(max(valor_cm / capacidade_cm * 100.0, 0.0), 100.0)
+
     if delta <= timedelta(hours=24):
         # Raw hypertable data (≤1440 pts for 24h)
         leituras = await repo.get_historico_raw(sensor_ids, start, now)
         return [
             PontoHistorico(
                 bucket=l.timestamp,
-                media=float(l.valor),
-                minimo=float(l.valor),
-                maximo=float(l.valor),
+                media=_cm_to_pct(float(l.valor)),
+                minimo=_cm_to_pct(float(l.valor)),
+                maximo=_cm_to_pct(float(l.valor)),
             )
             for l in leituras
         ]
@@ -80,9 +88,9 @@ async def get_historico(
     return [
         PontoHistorico(
             bucket=row["bucket"],
-            media=float(row["media"]),
-            minimo=float(row["minimo"]),
-            maximo=float(row["maximo"]),
+            media=_cm_to_pct(float(row["media"])),
+            minimo=_cm_to_pct(float(row["minimo"])),
+            maximo=_cm_to_pct(float(row["maximo"])),
         )
         for row in rows
     ]
@@ -96,7 +104,7 @@ async def list_reservatorios(session: AsyncSession) -> list[ReservatorioSummary]
     for r in reservatorios:
         nivel_cm, ts = await repo.get_latest_nivel(r.id)
         if nivel_cm is not None:
-            cap_cm = float(r.capacidade_m3)  # same proxy as ProcessamentoService
+            cap_cm = float(r.profundidade_m) * 100.0
             nivel_pct: float | None = policies.calcular_nivel_percentual(nivel_cm, cap_cm)
             status_str: str | None = policies.classificar_nivel(nivel_pct)
         else:
@@ -173,7 +181,9 @@ async def get_leituras_publico(
             sensor_id=s.id,
             codigo=s.codigo,
             descricao=s.descricao or s.codigo,
-            valor=val,
+            # O consumer normaliza m→cm (×100) antes de persistir, mas sensor.unidade
+            # continua como 'm'. Convertemos de volta para metros ao expor publicamente.
+            valor=round(val / 100.0, 2) if (val is not None and unid == "m") else val,
             unidade=unid,
             timestamp=ts,
         )
@@ -217,8 +227,29 @@ async def get_leituras_publico(
             )
         )
 
+    # ── Médias dos sensores de nível ────────────────────────────────────────
+    valores_m = [s.valor for s in sensores_nivel if s.valor is not None]
+    nivel_medio_m: float | None = None
+    nivel_medio_pct: float | None = None
+    volume_medio_m3: float | None = None
+
+    if valores_m:
+        nivel_medio_m = round(sum(valores_m) / len(valores_m), 2)
+        reservatorio = await session.get(
+            __import__("app.modules.ingestao.models", fromlist=["Reservatorio"]).Reservatorio,
+            reservatorio_id,
+        )
+        if reservatorio is not None:
+            prof_m = float(reservatorio.profundidade_m)
+            area_m2 = float(reservatorio.capacidade_m3) / prof_m
+            nivel_medio_pct = round(min(max(nivel_medio_m / prof_m * 100.0, 0.0), 100.0), 1)
+            volume_medio_m3 = round(nivel_medio_m * area_m2, 0)
+
     return LeituraSensoresPublico(
         sensores_nivel=sensores_nivel,
         estacoes=sorted(estacoes, key=lambda e: e.codigo_estacao),
         atualizado_em=_dt.now(tz=__import__("datetime").timezone.utc),
+        nivel_medio_m=nivel_medio_m,
+        nivel_medio_pct=nivel_medio_pct,
+        volume_medio_m3=volume_medio_m3,
     )
