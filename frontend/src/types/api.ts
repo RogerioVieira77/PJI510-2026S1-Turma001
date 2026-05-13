@@ -85,6 +85,29 @@ export interface LeituraSensoresPublico {
   volume_medio_m3: number | null
 }
 
+export interface SensorStatusItem {
+  sensor_id: number
+  nome: string
+  codigo: string
+  ativo: boolean
+  tipo_display: string
+  fonte_alimentacao: 'rede' | 'bateria' | null
+  bateria_pct: number | null
+  bms_nivel: 'normal' | 'alerta' | 'critico' | null
+  ultima_leitura: string | null
+}
+
+export interface BombaStatusItem {
+  sensor_id: number
+  nome: string
+  codigo: string
+  ligada: boolean | null
+  ultima_leitura: string | null
+  fonte_alimentacao: 'rede' | 'bateria' | null
+  bateria_pct: number | null
+  bms_nivel: 'normal' | 'alerta' | 'critico' | null
+}
+
 // ── Alertas externos (Defesa Civil + Previsão de Chuva) ──────────────────────
 
 export interface PrevisaoChuvaPublica {

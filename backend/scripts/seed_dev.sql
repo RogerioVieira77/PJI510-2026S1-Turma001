@@ -30,7 +30,7 @@ INSERT INTO reservatorio (nome, codigo, capacidade_m3, latitude, longitude, desc
 VALUES (
     'Piscinão Romano',
     'RES-ROMANO',
-    120000.00,
+    20000.00,
     -23.4778200,
     -46.3829000,
     'Reservatório de detenção de cheias do Jardim Romano — operado pela PMSP/SIURB'

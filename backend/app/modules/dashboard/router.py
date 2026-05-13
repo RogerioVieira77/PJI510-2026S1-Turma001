@@ -21,6 +21,8 @@ from app.modules.dashboard.schemas import (
     PontoHistorico,
     ReservatorioRead,
     ReservatorioSummary,
+    BombaStatusItem,
+    SensorStatusItem,
     StatusPublico,
     StatusReservatorio,
     LeituraSensoresPublico,
@@ -115,6 +117,27 @@ async def alertas_reservatorio(
         limit=limit,
     )
     return [AlertaRead.model_validate(a) for a in alertas]
+
+
+@router.get("/{reservatorio_id}/sensores/status", response_model=list[SensorStatusItem])
+async def status_sensores(
+    reservatorio_id: int,
+    _: CurrentUser,
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[SensorStatusItem]:
+    """Retorna status operacional (energia/bateria) de todos os sensores e
+    estações meteorológicas do reservatório (agrupados por estação)."""
+    return await svc.get_sensores_status(reservatorio_id, session)
+
+
+@router.get("/{reservatorio_id}/bombas/status", response_model=list[BombaStatusItem])
+async def status_bombas(
+    reservatorio_id: int,
+    _: CurrentUser,
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> list[BombaStatusItem]:
+    """Retorna o estado operacional (ligada/desligada) das bombas de drenagem do reservatório."""
+    return await svc.get_bombas_status(reservatorio_id, session)
 
 
 # ── Público ─────────────────────────────────────────────────────────────────

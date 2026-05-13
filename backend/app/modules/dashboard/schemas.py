@@ -86,3 +86,28 @@ class LeituraSensoresPublico(BaseModel):
     nivel_medio_m: float | None = None
     nivel_medio_pct: float | None = None
     volume_medio_m3: float | None = None
+
+
+class SensorStatusItem(BaseModel):
+    """Status operacional (energia/bateria) de um sensor ou estação meteorológica."""
+    sensor_id: int
+    nome: str
+    codigo: str
+    ativo: bool
+    tipo_display: str  # 'Sensor de Nível' | 'Estação Meteorológica'
+    fonte_alimentacao: str | None = None  # 'rede' | 'bateria'
+    bateria_pct: int | None = None        # 0..100
+    bms_nivel: str | None = None          # 'normal' | 'alerta' | 'critico'
+    ultima_leitura: datetime | None = None
+
+
+class BombaStatusItem(BaseModel):
+    """Status operacional de uma bomba de drenagem."""
+    sensor_id: int
+    nome: str
+    codigo: str
+    ligada: bool | None = None   # True=ligada, False=desligada, None=sem dados
+    ultima_leitura: datetime | None = None
+    fonte_alimentacao: str | None = None  # 'rede' | 'bateria'
+    bateria_pct: int | None = None        # 0..100
+    bms_nivel: str | None = None          # 'normal' | 'alerta' | 'critico'

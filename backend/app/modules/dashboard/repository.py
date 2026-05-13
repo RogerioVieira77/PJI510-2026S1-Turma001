@@ -180,3 +180,81 @@ class DashboardRepository:
             prefix = parts[0] if len(parts) == 2 else s.codigo
             groups.setdefault(prefix, []).append(s)
         return groups
+
+    async def get_all_sensores_with_latest_energia(
+        self, reservatorio_id: int
+    ) -> list[tuple[Sensor, str | None, int | None, str | None, datetime | None]]:
+        """Retorna (sensor, fonte_alimentacao, bateria_pct, bms_nivel, ultima_leitura)
+        para todos os sensores do reservatório, usando a leitura mais recente de cada um."""
+        result = await self._session.execute(
+            select(Sensor)
+            .where(
+                Sensor.reservatorio_id == reservatorio_id,
+                Sensor.tipo != TipoSensorEnum.estado_bomba,
+            )
+            .order_by(Sensor.codigo)
+        )
+        sensors = list(result.scalars().all())
+
+        out: list[tuple[Sensor, str | None, int | None, str | None, datetime | None]] = []
+        for sensor in sensors:
+            lr = await self._session.execute(
+                select(
+                    LeituraSensor.timestamp,
+                    LeituraSensor.fonte_alimentacao,
+                    LeituraSensor.bateria_pct,
+                    LeituraSensor.bms_nivel,
+                )
+                .where(LeituraSensor.sensor_id == sensor.id)
+                .order_by(LeituraSensor.timestamp.desc())
+                .limit(1)
+            )
+            row = lr.first()
+            out.append((
+                sensor,
+                row.fonte_alimentacao if row else None,
+                row.bateria_pct if row else None,
+                row.bms_nivel if row else None,
+                row.timestamp if row else None,
+            ))
+        return out
+
+    async def get_bombas_status(
+        self, reservatorio_id: int
+    ) -> list[tuple[Sensor, float | None, str | None, int | None, str | None, datetime | None]]:
+        """Retorna (sensor, valor, fonte, bateria_pct, bms_nivel, timestamp)
+        para todas as bombas de drenagem do reservatório."""
+        result = await self._session.execute(
+            select(Sensor)
+            .where(
+                Sensor.reservatorio_id == reservatorio_id,
+                Sensor.tipo == TipoSensorEnum.estado_bomba,
+            )
+            .order_by(Sensor.codigo)
+        )
+        sensors = list(result.scalars().all())
+
+        out: list[tuple[Sensor, float | None, str | None, int | None, str | None, datetime | None]] = []
+        for sensor in sensors:
+            lr = await self._session.execute(
+                select(
+                    LeituraSensor.valor,
+                    LeituraSensor.timestamp,
+                    LeituraSensor.fonte_alimentacao,
+                    LeituraSensor.bateria_pct,
+                    LeituraSensor.bms_nivel,
+                )
+                .where(LeituraSensor.sensor_id == sensor.id)
+                .order_by(LeituraSensor.timestamp.desc())
+                .limit(1)
+            )
+            row = lr.first()
+            out.append((
+                sensor,
+                float(row.valor) if row else None,
+                row.fonte_alimentacao if row else None,
+                row.bateria_pct if row else None,
+                row.bms_nivel if row else None,
+                row.timestamp if row else None,
+            ))
+        return out

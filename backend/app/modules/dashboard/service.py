@@ -133,7 +133,7 @@ async def get_publico_status(session: AsyncSession) -> list[StatusPublico]:
         for r in reservatorios:
             nivel_cm, ts = await repo.get_latest_nivel(r.id)
             if nivel_cm is not None:
-                cap_cm = float(r.capacidade_m3)
+                cap_cm = float(r.profundidade_m) * 100.0
                 nivel_pct = policies.calcular_nivel_percentual(nivel_cm, cap_cm)
                 status_str = policies.classificar_nivel(nivel_pct)
                 ultima = ts.isoformat() if ts else None
@@ -253,3 +253,95 @@ async def get_leituras_publico(
         nivel_medio_pct=nivel_medio_pct,
         volume_medio_m3=volume_medio_m3,
     )
+
+
+async def get_sensores_status(
+    reservatorio_id: int, session: AsyncSession
+) -> list:
+    """Retorna o status operacional (energia/bateria) de cada sensor e estação
+    meteorológica do reservatório, agrupando estações pelo prefixo do código."""
+    from app.modules.dashboard.schemas import SensorStatusItem
+
+    repo = DashboardRepository(session)
+    raw = await repo.get_all_sensores_with_latest_energia(reservatorio_id)
+
+    nivel_items: list[SensorStatusItem] = []
+    station_groups: dict[str, list[tuple]] = {}
+
+    for sensor, fonte, bateria_pct, bms, ts in raw:
+        if sensor.codigo.startswith("ESTACAO-"):
+            # Agrupamento: "ESTACAO-MET-001-temperatura" → prefixo "ESTACAO-MET-001"
+            prefix = sensor.codigo.rsplit("-", 1)[0]
+            station_groups.setdefault(prefix, []).append((sensor, fonte, bateria_pct, bms, ts))
+        else:
+            nivel_items.append(SensorStatusItem(
+                sensor_id=sensor.id,
+                nome=sensor.descricao or sensor.codigo,
+                codigo=sensor.codigo,
+                ativo=sensor.ativo,
+                tipo_display="Sensor de Nível",
+                fonte_alimentacao=fonte,
+                bateria_pct=bateria_pct,
+                bms_nivel=bms,
+                ultima_leitura=ts,
+            ))
+
+    station_items: list[SensorStatusItem] = []
+    for prefix, members in sorted(station_groups.items()):
+        # Representante: membro com a leitura mais recente
+        with_ts = [(s, f, b, bms, ts) for s, f, b, bms, ts in members if ts is not None]
+        if with_ts:
+            rep_sensor, fonte, bateria_pct, bms, ts = max(with_ts, key=lambda x: x[4])
+        else:
+            rep_sensor = members[0][0]
+            fonte, bateria_pct, bms, ts = None, None, None, None
+
+        # Nome de exibição: extrai parte após "—" na descrição do primeiro sensor
+        first_desc = members[0][0].descricao or ""
+        station_name = first_desc.split("—", 1)[-1].strip() if "—" in first_desc else prefix
+
+        any_ativo = any(m[0].ativo for m in members)
+
+        station_items.append(SensorStatusItem(
+            sensor_id=rep_sensor.id,
+            nome=station_name,
+            codigo=prefix,
+            ativo=any_ativo,
+            tipo_display="Estação Meteorológica",
+            fonte_alimentacao=fonte,
+            bateria_pct=bateria_pct,
+            bms_nivel=bms,
+            ultima_leitura=ts,
+        ))
+
+    return nivel_items + station_items
+
+
+async def get_bombas_status(
+    reservatorio_id: int, session: AsyncSession
+) -> list:
+    """Retorna o status operacional das bombas de drenagem do reservatório."""
+    from app.modules.dashboard.schemas import BombaStatusItem
+
+    repo = DashboardRepository(session)
+    raw = await repo.get_bombas_status(reservatorio_id)
+
+    items: list[BombaStatusItem] = []
+    for sensor, valor, fonte, bateria_pct, bms, ts in raw:
+        if valor is None:
+            ligada = None
+        else:
+            ligada = valor == 1.0
+
+        items.append(BombaStatusItem(
+            sensor_id=sensor.id,
+            nome=sensor.descricao or sensor.codigo,
+            codigo=sensor.codigo,
+            ligada=ligada,
+            ultima_leitura=ts,
+            fonte_alimentacao=fonte,
+            bateria_pct=bateria_pct,
+            bms_nivel=bms,
+        ))
+
+    return items

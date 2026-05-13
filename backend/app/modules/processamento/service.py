@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.modules.ingestao.models import LeituraSensor, Reservatorio, Sensor
+from app.modules.ingestao.models import LeituraSensor, Reservatorio, Sensor, TipoSensorEnum
 from app.modules.processamento import policies
 
 log = structlog.get_logger()
@@ -35,11 +35,12 @@ class ProcessamentoService:
             log.warning("processamento.reservatorio_nao_encontrado", id=reservatorio_id)
             return {}
 
-        # Load sensors of tipo 'nivel' for this reservoir
+        # Load sensors of tipo 'nivel' or 'nivel_agua' for this reservoir
         sensors_result = await self._session.execute(
             select(Sensor).where(
                 Sensor.reservatorio_id == reservatorio_id,
                 Sensor.ativo.is_(True),
+                Sensor.tipo.in_([TipoSensorEnum.nivel, TipoSensorEnum.nivel_agua]),
             )
         )
         sensors = sensors_result.scalars().all()

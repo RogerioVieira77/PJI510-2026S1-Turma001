@@ -7,12 +7,17 @@ import ReservoirMap from '@/components/ReservoirMap'
 import LevelChart from '@/components/LevelChart'
 import SensorStatusPanel from '@/components/SensorStatusPanel'
 import AlertsTable from '@/components/AlertsTable'
+import SensoresTab from '@/components/SensoresTab'
+import BombasTab from '@/components/BombasTab'
 import type { ReservatorioSummary } from '@/types/api'
+
+type Tab = 'visao-geral' | 'sensores' | 'bombas'
 
 export default function TechDashboard() {
   const { user, clearAuth } = useAuthStore()
   const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [activeTab, setActiveTab] = useState<Tab>('visao-geral')
 
   const { data: reservatorios = [], isLoading } = useQuery<ReservatorioSummary[]>({
     queryKey: ['reservatorios'],
@@ -89,31 +94,79 @@ export default function TechDashboard() {
           )}
         </div>
 
-        {/* Grid principal */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Mapa */}
-          <div className="lg:col-span-2">
-            <ReservoirMap reservatorios={reservatorios} />
-          </div>
-
-          {/* Painel de sensores em tempo real */}
-          {selectedId !== null && (
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-sm font-semibold text-slate-700">
-                {selected?.nome ?? `Reservatório #${selectedId}`} — Tempo Real
-              </h2>
-              <SensorStatusPanel reservatorioId={selectedId} />
-            </div>
-          )}
-
-          {/* Gráfico histórico */}
-          {selectedId !== null && (
-            <LevelChart reservatorioId={selectedId} />
-          )}
+        {/* Abas de navegação */}
+        <div className="border-b border-slate-200">
+          <nav className="-mb-px flex gap-1">
+            {([
+              { id: 'visao-geral', label: 'Visão Geral' },
+              { id: 'sensores',    label: 'Sensores' },
+              { id: 'bombas',      label: 'Bombas' },
+            ] as { id: Tab; label: string }[]).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Tabela de alertas — largura total */}
-        <AlertsTable />
+        {/* Conteúdo da aba Visão Geral */}
+        {activeTab === 'visao-geral' && (
+          <>
+            {/* Grid principal */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Mapa */}
+              <div className="lg:col-span-2">
+                <ReservoirMap reservatorios={reservatorios} />
+              </div>
+
+              {/* Painel de sensores em tempo real */}
+              {selectedId !== null && (
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <h2 className="mb-4 text-sm font-semibold text-slate-700">
+                    {selected?.nome ?? `Reservatório #${selectedId}`} — Tempo Real
+                  </h2>
+                  <SensorStatusPanel reservatorioId={selectedId} />
+                </div>
+              )}
+
+              {/* Gráfico histórico */}
+              {selectedId !== null && (
+                <LevelChart reservatorioId={selectedId} />
+              )}
+            </div>
+
+            {/* Tabela de alertas — largura total */}
+            <AlertsTable />
+          </>
+        )}
+
+        {/* Conteúdo da aba Sensores */}
+        {activeTab === 'sensores' && selectedId !== null && (
+          <SensoresTab reservatorioId={selectedId} />
+        )}
+        {activeTab === 'sensores' && selectedId === null && (
+          <p className="py-10 text-center text-sm text-slate-400">
+            Selecione um reservatório para ver o status dos sensores.
+          </p>
+        )}
+
+        {/* Conteúdo da aba Bombas */}
+        {activeTab === 'bombas' && selectedId !== null && (
+          <BombasTab reservatorioId={selectedId} />
+        )}
+        {activeTab === 'bombas' && selectedId === null && (
+          <p className="py-10 text-center text-sm text-slate-400">
+            Selecione um reservatório para ver o status das bombas.
+          </p>
+        )}
       </main>
     </div>
   )

@@ -36,6 +36,7 @@ class UnidadeEnum(str, enum.Enum):
     hPa = "hPa"
     km_h = "km/h"
     graus = "graus"
+    bool_ = "bool"
 
 
 class LeituraCreate(BaseModel):

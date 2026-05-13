@@ -33,6 +33,7 @@ class TipoSensorEnum(str, enum.Enum):
     umidade = "umidade"
     vento_direcao = "vento_direcao"
     vento_velocidade = "vento_velocidade"
+    estado_bomba = "estado_bomba"
 
 
 class Reservatorio(Base):

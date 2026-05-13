@@ -254,7 +254,7 @@ function VolumeMediaCard({ nivelMedioM, nivelMedioPct, volumeMedioM3 }: VolumeMe
             <span className="text-lg font-light text-slate-400">m³</span>
           </div>
           <p className="mt-0.5 text-sm text-slate-400">
-            de 120.000 m³ totais
+            de 20.000 m³ totais
           </p>
         </div>
       </div>
