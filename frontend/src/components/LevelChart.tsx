@@ -9,10 +9,15 @@ import {
   Tooltip,
   ReferenceLine,
   ResponsiveContainer,
-  Legend,
 } from 'recharts'
 import apiClient from '@/api/client'
 import type { PontoHistorico } from '@/types/api'
+
+// Capacidade total do piscinão Romano
+const CAPACIDADE_M3 = 20_000
+const REF_ATENCAO_M3 = Math.round(0.60 * CAPACIDADE_M3)  // 12 000 m³
+const REF_ALERTA_M3  = Math.round(0.80 * CAPACIDADE_M3)  // 16 000 m³
+const REF_CRITICO_M3 = Math.round(0.95 * CAPACIDADE_M3)  // 19 000 m³
 
 type Periodo = '1h' | '6h' | '24h' | '7d' | '30d'
 
@@ -30,8 +35,12 @@ function formatXAxis(value: string, periodo: Periodo): string {
   return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
+function formatYAxis(value: number): string {
+  return value >= 1_000 ? `${(value / 1_000).toFixed(0)}k` : String(value)
+}
+
 function formatTooltip(value: number) {
-  return [`${value.toFixed(1)} %`, 'Nível']
+  return [`${value.toLocaleString('pt-BR')} m³`, 'Volume']
 }
 
 export default function LevelChart({ reservatorioId }: Props) {
@@ -50,16 +59,14 @@ export default function LevelChart({ reservatorioId }: Props) {
 
   const chartData = (data ?? []).map((p) => ({
     bucket: p.bucket,
-    media: Number(p.media.toFixed(2)),
-    minimo: Number(p.minimo.toFixed(2)),
-    maximo: Number(p.maximo.toFixed(2)),
+    volume: Math.round((p.media / 100) * CAPACIDADE_M3),
   }))
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       {/* Seletor de período */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-700">Histórico de Nível</h3>
+        <h3 className="text-sm font-semibold text-slate-700">Histórico de Volume</h3>
         <div className="flex gap-1">
           {PERIODOS.map((p) => (
             <button
@@ -102,44 +109,29 @@ export default function LevelChart({ reservatorioId }: Props) {
             />
             <YAxis
               tick={{ fontSize: 11, fill: '#64748b' }}
-              domain={[0, 100]}
-              unit="%"
-              width={36}
+              domain={[0, CAPACIDADE_M3]}
+              tickFormatter={formatYAxis}
+              unit=" m³"
+              width={52}
             />
-            <Tooltip formatter={formatTooltip} labelFormatter={(l) => new Date(l as string).toLocaleString('pt-BR')} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Tooltip
+              formatter={formatTooltip}
+              labelFormatter={(l) => new Date(l as string).toLocaleString('pt-BR')}
+            />
 
-            {/* Linhas de threshold */}
-            <ReferenceLine y={60} stroke="#EAB308" strokeDasharray="4 4" label={{ value: 'Atenção', position: 'insideTopRight', fontSize: 10, fill: '#EAB308' }} />
-            <ReferenceLine y={80} stroke="#F97316" strokeDasharray="4 4" label={{ value: 'Alerta', position: 'insideTopRight', fontSize: 10, fill: '#F97316' }} />
-            <ReferenceLine y={95} stroke="#EF4444" strokeDasharray="4 4" label={{ value: 'Crítico', position: 'insideTopRight', fontSize: 10, fill: '#EF4444' }} />
+            {/* Linhas de threshold convertidas para m³ */}
+            <ReferenceLine y={REF_ATENCAO_M3} stroke="#EAB308" strokeDasharray="4 4" label={{ value: 'Atenção', position: 'insideTopRight', fontSize: 10, fill: '#EAB308' }} />
+            <ReferenceLine y={REF_ALERTA_M3}  stroke="#F97316" strokeDasharray="4 4" label={{ value: 'Alerta',  position: 'insideTopRight', fontSize: 10, fill: '#F97316' }} />
+            <ReferenceLine y={REF_CRITICO_M3} stroke="#EF4444" strokeDasharray="4 4" label={{ value: 'Crítico', position: 'insideTopRight', fontSize: 10, fill: '#EF4444' }} />
 
             <Line
               type="monotone"
-              dataKey="media"
-              name="Média"
+              dataKey="volume"
+              name="Volume"
               stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="minimo"
-              name="Mínimo"
-              stroke="#94a3b8"
-              strokeWidth={1}
-              strokeDasharray="3 3"
-              dot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="maximo"
-              name="Máximo"
-              stroke="#94a3b8"
-              strokeWidth={1}
-              strokeDasharray="3 3"
-              dot={false}
             />
           </LineChart>
         </ResponsiveContainer>

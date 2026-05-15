@@ -27,6 +27,7 @@ from app.modules.alertas_externos.consumer import (
     consumir_defesa_alertas,
 )
 from app.modules.alertas_externos.router import publico_alertas_router
+from app.modules.geo.router import router as geo_router
 
 log = structlog.get_logger()
 settings = get_settings()
@@ -80,6 +81,7 @@ app.include_router(alertas_router, prefix="/api/v1/alertas", tags=["alertas"])
 app.include_router(clima_router, prefix="/api/v1/reservatorios", tags=["clima"])
 app.include_router(ws_router, prefix="/ws", tags=["websocket"])
 app.include_router(publico_alertas_router, prefix="/api/v1/publico", tags=["publico"])
+app.include_router(geo_router, prefix="/api/v1/geo", tags=["geo"])
 
 
 # ── Health ───────────────────────────────────────────────────────────────────

@@ -19,6 +19,9 @@ from app.modules.processamento.policies import (
     correlacionar_pluviometria,
     detectar_divergencia_sensores,
     estimar_tempo_transbordo,
+    estimar_tempo_transbordo_com_bombas,
+    NIVEL_ACIONAMENTO_BOMBAS_PCT,
+    VAZAO_POR_BOMBA_M3_H,
 )
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -190,3 +193,145 @@ def test_classificar_alerta():
 
 def test_classificar_emergencia():
     assert classificar_nivel(THRESHOLD_EMERGENCIA) == "emergencia"
+
+
+# ── RN-07: estimar_tempo_transbordo_com_bombas ────────────────────────────────
+# Fixture: reservatório 50×50 m, profundidade 8 m, capacidade 20 000 m³
+# area_m2 = 2500, capacidade_cm = 800
+
+_AREA = 2500.0       # m² (50×50)
+_CAP_CM = 800.0      # 8 m em cm
+_N_BOMBAS_TOTAL = 5
+
+
+def test_rn07_nivel_abaixo_50pct_retorna_none():
+    """Função deve retornar None quando nível < 50 %."""
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=40.0,
+        nivel_cm=320.0,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=0.5,
+        bombas_ligadas=0,
+    )
+    assert result is None
+
+
+def test_rn07_nivel_exato_50pct_ativa():
+    """A partir de exatamente 50 % a função deve calcular (não retornar None
+    apenas por causa do nível) — desde que taxa líquida seja positiva."""
+    # Sem nenhuma bomba para garantir taxa líquida > 0
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=50.0,
+        nivel_cm=400.0,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=1.0,
+        bombas_ligadas=0,
+    )
+    assert result is not None
+    assert result > 0
+
+
+def test_rn07_todas_bombas_ligadas_drenando_retorna_none():
+    """5 bombas × 2,8 m³/h = 14 m³/h = 0,2333 m³/min.
+    Se o enchimento for menor, a taxa líquida é negativa → None."""
+    # taxa_cm_min = 0.5 → enchimento = (0.5/100)*2500 = 12.5 m³/min  [muito alto]
+    # Usa taxa baixa: 0.001 cm/min → enchimento = 0.025 m³/min < 0.2333 m³/min (drenagem)
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=75.0,
+        nivel_cm=600.0,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=0.001,  # praticamente estável
+        bombas_ligadas=5,
+    )
+    assert result is None
+
+
+def test_rn07_sem_bombas_calculo_correto():
+    """Com 0 bombas a drenagem é zero; equivale a estimar_tempo_transbordo.
+
+    Nível 600 cm, capacidade 800 cm → restam 200 cm.
+    Area = 2500 m² → volume restante = 2 cm/100 * 2500 = 5000 m³.
+    taxa_cm_min = 1 → enchimento = (1/100)*2500 = 25 m³/min.
+    T = 5000 / 25 = 200 min.
+    """
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=75.0,
+        nivel_cm=600.0,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=1.0,
+        bombas_ligadas=0,
+    )
+    assert result == pytest.approx(200.0)
+
+
+def test_rn07_3_bombas_ligadas_calculo_correto():
+    """3 bombas falhas (2 ativas).
+
+    taxa_cm_min = 1 → enchimento = 25 m³/min.
+    drenagem = 3 * 2.8 / 60 = 0.14 m³/min.
+    taxa_liquida = 25 - 0.14 = 24.86 m³/min.
+    volume_restante = 5000 m³.
+    T = 5000 / 24.86 ≈ 201.12 min.
+    """
+    drenagem_min = 3 * VAZAO_POR_BOMBA_M3_H / 60
+    taxa_liquida = 25.0 - drenagem_min
+    esperado = 5000.0 / taxa_liquida
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=75.0,
+        nivel_cm=600.0,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=1.0,
+        bombas_ligadas=3,
+    )
+    assert result == pytest.approx(esperado, rel=1e-4)
+
+
+def test_rn07_nivel_ja_no_maximo_retorna_none():
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=100.0,
+        nivel_cm=_CAP_CM,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=1.0,
+        bombas_ligadas=0,
+    )
+    assert result is None
+
+
+def test_rn07_taxa_zero_retorna_none():
+    """Taxa de enchimento zero → taxa líquida negativa (drenagem > 0) → None."""
+    result = estimar_tempo_transbordo_com_bombas(
+        nivel_pct=60.0,
+        nivel_cm=480.0,
+        capacidade_cm=_CAP_CM,
+        area_m2=_AREA,
+        taxa_cm_min=0.0,
+        bombas_ligadas=5,
+    )
+    assert result is None
+
+
+def test_rn07_uma_bomba_falhou():
+    """4 de 5 bombas ligadas — verifica que o tempo calculado é maior que com 5 bombas."""
+    kwargs = dict(
+        nivel_pct=75.0, nivel_cm=600.0, capacidade_cm=_CAP_CM,
+        area_m2=_AREA, taxa_cm_min=1.0,
+    )
+    t5 = estimar_tempo_transbordo_com_bombas(**kwargs, bombas_ligadas=5)
+    t4 = estimar_tempo_transbordo_com_bombas(**kwargs, bombas_ligadas=4)
+    # Com menos drenagem o transbordo é mais rápido (menor t)
+    assert t5 is not None and t4 is not None
+    assert t4 < t5
+
+
+def test_rn07_nivel_acionamento_constante_valor():
+    assert NIVEL_ACIONAMENTO_BOMBAS_PCT == 50.0
+
+
+def test_rn07_vazao_por_bomba_constante_valor():
+    assert VAZAO_POR_BOMBA_M3_H == pytest.approx(2.8)

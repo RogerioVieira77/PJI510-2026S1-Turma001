@@ -17,7 +17,11 @@ import type {
   SituacaoDefesaCivilPublica,
   AlertaDefesaCivilPublico,
   PrevisaoChuvaPublica,
+  PrevisaoTempoHG,
+  DiaPrevisaoHG,
 } from '@/types/api'
+
+const HG_WEATHER_KEY = '9e94f4c7'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -378,6 +382,105 @@ function PrevisaoChuvaCard({ previsao }: { previsao: PrevisaoChuvaPublica }) {
   )
 }
 
+// ── HG Weather helpers ───────────────────────────────────────────────────────
+
+const _CONDICAO_EMOJI: Record<string, string> = {
+  clear_day: '☀️',
+  clear_night: '🌙',
+  cloudly_day: '🌤',
+  cloudly_night: '🌥',
+  cloud: '☁️',
+  rain: '🌧️',
+  storm: '⛈️',
+  fog: '🌫️',
+  snow: '❄️',
+  hail: '🌨️',
+  sleet: '🌨️',
+}
+
+function condEmoji(slug: string): string {
+  return _CONDICAO_EMOJI[slug] ?? '🌡️'
+}
+
+// ── Card: condições atuais HG Weather ────────────────────────────────────────
+
+function PrevisaoTempoAtualCard({ dados }: { dados: PrevisaoTempoHG }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-xl ring-1 ring-white/5">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-sky-500/10 blur-2xl" />
+      <div className="mb-5 flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-widest text-sky-400">Temperatura Agora</span>
+          </div>
+          <h2 className="mt-1 text-sm text-slate-400">Jardim Romano, São Paulo</h2>
+        </div>
+        <span className="text-4xl leading-none">{condEmoji(dados.condition_slug)}</span>
+      </div>
+
+      <div className="mb-4 flex items-end gap-3">
+        <span className="text-5xl font-black tabular-nums text-white">{dados.temp}°</span>
+        <span className="mb-1 text-base text-slate-400">{dados.description}</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+        <div className="rounded-xl bg-slate-800/60 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Umidade</p>
+          <p className="font-semibold text-white">{dados.humidity}%</p>
+        </div>
+        <div className="rounded-xl bg-slate-800/60 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Vento</p>
+          <p className="font-semibold text-white">{dados.wind_speedy}</p>
+        </div>
+        <div className="rounded-xl bg-slate-800/60 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Nascer</p>
+          <p className="font-semibold text-white">{dados.sunrise}</p>
+        </div>
+        <div className="rounded-xl bg-slate-800/60 px-3 py-2">
+          <p className="text-[10px] uppercase tracking-wide text-slate-500">Pôr do sol</p>
+          <p className="font-semibold text-white">{dados.sunset}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Scroll horizontal 7 dias ─────────────────────────────────────────────────
+
+function PrevisaoSemanaScroll({ dias }: { dias: DiaPrevisaoHG[] }) {
+  return (
+    <div className="grid grid-cols-7 gap-2">
+      {dias.slice(0, 7).map((dia) => (
+          <div
+            key={dia.date}
+            className="flex min-w-0 flex-col items-center gap-2 rounded-2xl bg-slate-800/60 p-3 ring-1 ring-white/5"
+          >
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{dia.weekday}</span>
+            <span className="text-2xl leading-none">{condEmoji(dia.condition)}</span>
+            <div className="text-center">
+              <span className="text-sm font-bold text-white">{dia.max}°</span>
+              <span className="mx-1 text-slate-600">/</span>
+              <span className="text-sm text-slate-400">{dia.min}°</span>
+            </div>
+            {/* Barra de probabilidade de chuva */}
+            <div className="w-full">
+              <div className="mb-0.5 flex justify-between">
+                <span className="text-[9px] text-slate-500">💧</span>
+                <span className="text-[9px] text-slate-400">{dia.rain_probability}%</span>
+              </div>
+              <div className="h-1 w-full overflow-hidden rounded-full bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-sky-500"
+                  style={{ width: `${dia.rain_probability}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+    </div>
+  )
+}
+
 // ── Lista de Alertas Defesa Civil ─────────────────────────────────────────────
 
 function dataFormatada(iso: string): string {
@@ -454,6 +557,21 @@ export default function PublicDashboard() {
     refetchInterval: 30_000,
   })
 
+  const { data: previsaoTempo } = useQuery<PrevisaoTempoHG>({
+    queryKey: ['hg-weather'],
+    queryFn: async () => {
+      const url = `https://api.hgbrasil.com/weather?lat=-23.4803&lon=-46.3833&key=${HG_WEATHER_KEY}&format=json-cors`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('HG Weather indisponível')
+      const json = await res.json()
+      if (!json.results) throw new Error('Resposta inválida')
+      return json.results as PrevisaoTempoHG
+    },
+    staleTime: 1_800_000,
+    refetchInterval: 1_800_000,
+    retry: 1,
+  })
+
   const selected = reservatorios.find((r) => r.id === selectedId) ?? null
   const loading = loadingRes || loadingLeituras
 
@@ -501,6 +619,32 @@ export default function PublicDashboard() {
         {alertasExternos?.situacao_defesa_civil && (
           <BannerDefesaCivil situacao={alertasExternos.situacao_defesa_civil} />
         )}
+
+        {/* ── Busca por Abrigo ── */}
+        <section className="text-center">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-800" />
+            <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Emergência</span>
+            <div className="h-px flex-1 bg-slate-800" />
+          </div>
+          <a
+            href="/abrigos"
+            className="inline-flex items-center gap-2 rounded-xl bg-red-700 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:bg-red-600 transition"
+          >
+            <span>🏠</span>
+            <span>Buscar Abrigo Próximo</span>
+          </a>
+          <p className="mt-2 text-xs text-slate-500">
+            Encontre o local de abrigo mais próximo da sua residência
+          </p>
+          <p className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm font-semibold">
+            <span className="text-orange-400">🚨 Defesa Civil <span className="text-white">199</span></span>
+            <span className="text-slate-500">|</span>
+            <span className="text-orange-400">🚑 SAMU <span className="text-white">192</span></span>
+            <span className="text-slate-500">|</span>
+            <span className="text-orange-400">🚒 Bombeiros <span className="text-white">193</span></span>
+          </p>
+        </section>
 
         {/* ── Sensores de Nível ── */}
         <section>
@@ -550,6 +694,21 @@ export default function PublicDashboard() {
                 <PrevisaoChuvaCard previsao={alertasExternos.previsao_chuva} />
               )}
               <AlertasDefesaCivilList alertas={alertasExternos.alertas_defesa_civil} />
+            </div>
+          </section>
+        )}
+
+        {/* ── Previsão do Tempo (HG Weather) ── */}
+        {previsaoTempo && (
+          <section>
+            <div className="mb-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-slate-800" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-slate-500">Previsão do Tempo</span>
+              <div className="h-px flex-1 bg-slate-800" />
+            </div>
+            <div className="space-y-4">
+              <PrevisaoTempoAtualCard dados={previsaoTempo} />
+              <PrevisaoSemanaScroll dias={previsaoTempo.forecast} />
             </div>
           </section>
         )}

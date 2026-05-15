@@ -12,6 +12,10 @@ THRESHOLD_EMERGENCIA: float = 95.0
 # RN-06 divergence tolerance between redundant sensors
 DIVERGENCIA_MAXIMA_PCT: float = 10.0
 
+# RN-07 drainage pump constants
+VAZAO_POR_BOMBA_M3_H: float = 2.8        # m³/h per pump
+NIVEL_ACIONAMENTO_BOMBAS_PCT: float = 50.0  # pumps activate at 50 % capacity
+
 
 def calcular_volume(nivel_cm: float, area_m2: float) -> float:
     """RN-01: Volume armazenado em m³.
@@ -62,6 +66,46 @@ def estimar_tempo_transbordo(
     if nivel_cm >= capacidade_cm:
         return None
     return (capacidade_cm - nivel_cm) / taxa_cm_min
+
+
+def estimar_tempo_transbordo_com_bombas(
+    nivel_pct: float,
+    nivel_cm: float,
+    capacidade_cm: float,
+    area_m2: float,
+    taxa_cm_min: float,
+    bombas_ligadas: int,
+) -> Optional[float]:
+    """RN-07: Minutos até o transbordo considerando a drenagem das bombas ativas.
+
+    A lógica só é ativada quando o nível atinge NIVEL_ACIONAMENTO_BOMBAS_PCT (50 %).
+    Retorna None quando:
+    - nível < 50 % (bombas ainda não acionadas)
+    - taxa líquida ≤ 0  (drenagem ≥ enchimento → sem risco de transbordo)
+    - nível já atingiu ou ultrapassou a capacidade
+
+    Fórmula:
+        enchimento_m3_min  = (taxa_cm_min / 100) * area_m2
+        drenagem_m3_min    = bombas_ligadas * VAZAO_POR_BOMBA_M3_H / 60
+        taxa_liquida_m3_min = enchimento - drenagem
+        T = (V_max - V_atual) / taxa_liquida_m3_min
+    """
+    if nivel_pct < NIVEL_ACIONAMENTO_BOMBAS_PCT:
+        return None
+    if nivel_cm >= capacidade_cm:
+        return None
+
+    volume_atual_m3 = (nivel_cm / 100.0) * area_m2
+    volume_max_m3 = (capacidade_cm / 100.0) * area_m2
+
+    enchimento_m3_min = (taxa_cm_min / 100.0) * area_m2
+    drenagem_m3_min = (bombas_ligadas * VAZAO_POR_BOMBA_M3_H) / 60.0
+    taxa_liquida_m3_min = enchimento_m3_min - drenagem_m3_min
+
+    if taxa_liquida_m3_min <= 0:
+        return None
+
+    return (volume_max_m3 - volume_atual_m3) / taxa_liquida_m3_min
 
 
 def detectar_divergencia_sensores(leituras_sensores: dict[int, float]) -> bool:

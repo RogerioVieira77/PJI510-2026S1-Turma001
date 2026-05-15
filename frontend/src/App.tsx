@@ -5,6 +5,7 @@ import Admin from '@/pages/Admin'
 import Login from '@/pages/Login'
 import PublicDashboard from '@/pages/PublicDashboard'
 import TechDashboard from '@/pages/TechDashboard'
+import AbrigoMap from '@/pages/AbrigoMap'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ export default function App() {
           {/* Público — sem autenticação */}
           <Route path="/" element={<PublicDashboard />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/abrigos" element={<AbrigoMap />} />
 
           {/* Técnico — requer role operador, gestor ou admin */}
           <Route

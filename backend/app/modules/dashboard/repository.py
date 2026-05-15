@@ -26,7 +26,7 @@ class DashboardRepository:
         result = await self._session.execute(
             select(Sensor.id).where(
                 Sensor.reservatorio_id == reservatorio_id,
-                Sensor.tipo == TipoSensorEnum.nivel,
+                Sensor.tipo == TipoSensorEnum.nivel_agua,
                 Sensor.ativo.is_(True),
             )
         )
@@ -41,7 +41,7 @@ class DashboardRepository:
             .join(Sensor, LeituraSensor.sensor_id == Sensor.id)
             .where(
                 Sensor.reservatorio_id == reservatorio_id,
-                Sensor.tipo == TipoSensorEnum.nivel,
+                Sensor.tipo == TipoSensorEnum.nivel_agua,
                 Sensor.ativo.is_(True),
             )
             .order_by(LeituraSensor.timestamp.desc())

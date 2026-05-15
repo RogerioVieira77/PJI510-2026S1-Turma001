@@ -61,6 +61,12 @@ export default function TechDashboard() {
                 </span>
               )}
             </span>
+            <a
+              href="/"
+              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-100 transition"
+            >
+              Alerta Romano
+            </a>
             <button
               onClick={handleLogout}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"

@@ -83,14 +83,32 @@ class ProcessamentoService:
         timestamps_lista = [l.timestamp for l in nivel_leituras]
         taxa_cm_min = policies.calcular_taxa_variacao(valores, timestamps_lista)
 
-        # RN-03
-        tempo_transbordo = policies.estimar_tempo_transbordo(
-            nivel_cm, capacidade_cm, taxa_cm_min
-        )
-
-        # RN-04
+        # RN-04 (needed for RN-07 below — compute before overflow estimate)
         nivel_pct = policies.calcular_nivel_percentual(nivel_cm, capacidade_cm)
         status = policies.classificar_nivel(nivel_pct)
+
+        # RN-07: query active pump sensors and count those currently on
+        bombas_result = await self._session.execute(
+            select(LeituraSensor)
+            .join(Sensor, Sensor.id == LeituraSensor.sensor_id)
+            .where(
+                Sensor.reservatorio_id == reservatorio_id,
+                Sensor.ativo.is_(True),
+                Sensor.tipo == TipoSensorEnum.estado_bomba,
+            )
+            .order_by(LeituraSensor.sensor_id, LeituraSensor.timestamp.desc())
+            .distinct(LeituraSensor.sensor_id)
+        )
+        leituras_bombas = bombas_result.scalars().all()
+        bombas_ligadas = sum(1 for lb in leituras_bombas if lb.valor is not None and float(lb.valor) == 1.0)
+
+        taxa_enchimento_m3_h = round((taxa_cm_min / 100.0) * area_m2 * 60.0, 2)
+        taxa_drenagem_m3_h = round(bombas_ligadas * policies.VAZAO_POR_BOMBA_M3_H, 2)
+
+        # RN-07: overflow estimate with pump drainage (replaces simple RN-03)
+        tempo_transbordo = policies.estimar_tempo_transbordo_com_bombas(
+            nivel_pct, nivel_cm, capacidade_cm, area_m2, taxa_cm_min, bombas_ligadas
+        )
 
         # RN-06 — check divergence across all active sensors
         leituras_por_sensor: dict[int, float] = {}
@@ -130,6 +148,9 @@ class ProcessamentoService:
             "volume_m3": round(volume_m3, 2),
             "taxa_cm_min": round(taxa_cm_min, 4),
             "tempo_transbordo_min": round(tempo_transbordo, 1) if tempo_transbordo is not None else None,
+            "bombas_ligadas": bombas_ligadas,
+            "taxa_enchimento_m3_h": taxa_enchimento_m3_h,
+            "taxa_drenagem_m3_h": taxa_drenagem_m3_h,
             "status": status,
             "divergencia_sensores": divergencia,
             "timestamp": ultima_leitura.timestamp.isoformat(),

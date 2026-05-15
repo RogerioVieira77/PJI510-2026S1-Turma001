@@ -20,6 +20,9 @@ export interface StatusReservatorio {
   volume_m3: number
   taxa_cm_min: number
   tempo_transbordo_min: number | null
+  bombas_ligadas?: number | null
+  taxa_enchimento_m3_h?: number | null
+  taxa_drenagem_m3_h?: number | null
   status: string
   divergencia_sensores: boolean
   timestamp: string
@@ -145,4 +148,30 @@ export interface AlertasExternos {
   previsao_chuva: PrevisaoChuvaPublica | null
   situacao_defesa_civil: SituacaoDefesaCivilPublica | null
   alertas_defesa_civil: AlertaDefesaCivilPublico[]
+}
+
+// ── HG Weather — Previsão do Tempo ──────────────────────────────────────────
+
+export interface DiaPrevisaoHG {
+  date: string           // "14/05"
+  weekday: string        // "Qui"
+  max: number
+  min: number
+  description: string    // "Chuvas esparsas"
+  condition: string      // "rain"
+  rain_probability: number  // 0-100
+  rain: number           // mm
+  humidity: number
+}
+
+export interface PrevisaoTempoHG {
+  city_name: string
+  temp: number
+  description: string
+  condition_slug: string
+  humidity: number
+  wind_speedy: string
+  sunrise: string
+  sunset: string
+  forecast: DiaPrevisaoHG[]
 }

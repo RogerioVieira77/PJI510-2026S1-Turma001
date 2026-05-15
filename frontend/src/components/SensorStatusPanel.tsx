@@ -63,10 +63,40 @@ export default function SensorStatusPanel({ reservatorioId }: Props) {
   const nivelPct = status?.nivel_pct != null ? `${status.nivel_pct.toFixed(1)}%` : '—'
   const volumeM3 = status?.volume_m3 != null ? `${status.volume_m3.toFixed(0)} m³` : '—'
   const taxa = status?.taxa_cm_min != null ? `${status.taxa_cm_min.toFixed(2)} cm/min` : '—'
+
+  // RN-07: Transbordo estimado com bombas
+  const nivelAbaixo50 = status?.nivel_pct != null && status.nivel_pct < 50
+  const bombasLigadas = status?.bombas_ligadas ?? null
+  const taxaEnchimento = status?.taxa_enchimento_m3_h ?? null
+  const taxaDrenagem = status?.taxa_drenagem_m3_h ?? null
+
   const tempoTransbordo =
     status?.tempo_transbordo_min != null && status.tempo_transbordo_min > 0
-      ? `${status.tempo_transbordo_min} min`
+      ? `${Math.round(status.tempo_transbordo_min)} min`
       : '—'
+
+  const bombasSubLabel =
+    bombasLigadas != null
+      ? `${bombasLigadas}/5 bombas ativas`
+      : undefined
+
+  const transbordoSub = nivelAbaixo50
+    ? 'Aguardando 50% para ativar'
+    : tempoTransbordo === '—'
+    ? bombasSubLabel
+      ? `${bombasSubLabel} · drenando`
+      : 'Nível estável ou caindo'
+    : bombasSubLabel
+
+  const drenagemValue =
+    taxaDrenagem != null && taxaEnchimento != null
+      ? `${taxaDrenagem.toFixed(1)} m³/h`
+      : '—'
+  const drenagemSub =
+    taxaEnchimento != null
+      ? `Entrada: ${taxaEnchimento.toFixed(1)} m³/h`
+      : undefined
+
   const divergencia = status?.divergencia_sensores ? 'Divergência detectada' : 'Sensores OK'
   const ultimaAtualizacao = status?.timestamp
     ? new Date(status.timestamp).toLocaleTimeString('pt-BR')
@@ -120,7 +150,12 @@ export default function SensorStatusPanel({ reservatorioId }: Props) {
         <MetricCard
           label="Transbordo estimado"
           value={tempoTransbordo}
-          sub={tempoTransbordo === '—' ? 'Nível estável ou caindo' : undefined}
+          sub={transbordoSub}
+        />
+        <MetricCard
+          label="Drenagem das bombas"
+          value={drenagemValue}
+          sub={drenagemSub}
         />
         <MetricCard
           label="Sensores"

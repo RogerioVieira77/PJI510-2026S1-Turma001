@@ -34,6 +34,9 @@ class StatusReservatorio(BaseModel):
     volume_m3: float
     taxa_cm_min: float
     tempo_transbordo_min: float | None
+    bombas_ligadas: int | None = None
+    taxa_enchimento_m3_h: float | None = None
+    taxa_drenagem_m3_h: float | None = None
     status: str
     divergencia_sensores: bool
     timestamp: str
