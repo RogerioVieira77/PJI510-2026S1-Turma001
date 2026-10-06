@@ -4,9 +4,6 @@
 
 Sistema de monitoramento em tempo real de **reservatórios de detenção (piscinões/pôlders)** da Região Metropolitana de São Paulo, com ingestão de sensores IoT, motor de regras hidrológico, alertas multicanal e dashboards web com suporte offline (PWA).
 
-Testes
-
-
 ---
 
 ## Sumário
